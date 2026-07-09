@@ -26,6 +26,8 @@ export interface IUser extends Document {
   samlId?: string;
   ldapId?: string;
   githubId?: string;
+  githubAccessToken?: string;
+  githubActiveRepo?: string;
   discordId?: string;
   appleId?: string;
   plugins?: string[];

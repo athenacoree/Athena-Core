@@ -134,7 +134,7 @@ router.get(
 router.get(
   '/github',
   passport.authenticate('github', {
-    scope: ['user:email', 'read:user'],
+    scope: ['user:email', 'read:user', 'repo'],
     session: false,
   }),
 );
@@ -145,7 +145,7 @@ router.get(
     failureRedirect: `${domains.client}/oauth/error`,
     failureMessage: true,
     session: false,
-    scope: ['user:email', 'read:user'],
+    scope: ['user:email', 'read:user', 'repo'],
   }),
   setBalanceConfig,
   checkDomainAllowed,

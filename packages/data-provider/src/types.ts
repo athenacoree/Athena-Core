@@ -222,6 +222,8 @@ export type TUser = {
   avatar: string;
   role: string;
   provider: string;
+  githubConnected?: boolean;
+  githubActiveRepo?: string;
   tenantId?: string;
   plugins?: string[];
   twoFactorEnabled?: boolean;

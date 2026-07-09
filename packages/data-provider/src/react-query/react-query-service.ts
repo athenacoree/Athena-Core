@@ -86,6 +86,39 @@ export const useGetConversationByIdMutation = (id: string): UseMutationResult<s.
   });
 };
 
+export const useGetGitHubReposQuery = (config?: UseQueryOptions<any[]>): QueryObserverResult<any[]> => {
+  return useQuery<any[]>([QueryKeys.user, 'github', 'repos'], () => dataService.getGitHubRepos(), {
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
+    refetchOnMount: false,
+    retry: false,
+    ...config,
+  });
+};
+
+export const useSetGitHubActiveRepoMutation = (): UseMutationResult<
+  { message: string },
+  unknown,
+  string,
+  unknown
+> => {
+  const queryClient = useQueryClient();
+  return useMutation((repoFullName: string) => dataService.setGitHubActiveRepo(repoFullName), {
+    onSuccess: () => {
+      queryClient.invalidateQueries([QueryKeys.user]);
+    },
+  });
+};
+
+export const usePushToGitHubMutation = (): UseMutationResult<
+  { message: string; result: any },
+  unknown,
+  { path: string; content: string; message: string; branch?: string },
+  unknown
+> => {
+  return useMutation((payload) => dataService.pushToGitHub(payload));
+};
+
 export const useUpdateMessageMutation = (
   id: string,
 ): UseMutationResult<unknown, unknown, t.TUpdateMessageRequest, unknown> => {

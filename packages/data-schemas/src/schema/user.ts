@@ -86,6 +86,13 @@ const userSchema: Schema<IUser> = new Schema<IUser>(
     githubId: {
       type: String,
     },
+    githubAccessToken: {
+      type: String,
+      select: false,
+    },
+    githubActiveRepo: {
+      type: String,
+    },
     discordId: {
       type: String,
     },

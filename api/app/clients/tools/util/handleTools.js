@@ -27,6 +27,7 @@ const {
   // Basic Tools
   GoogleSearchAPI,
   // Structured Tools
+  GitHub,
   DALLE3,
   FluxAPI,
   OpenWeather,
@@ -179,6 +180,7 @@ const loadTools = async ({
   imageOutputType,
 }) => {
   const toolConstructors = {
+    github: GitHub,
     flux: FluxAPI,
     calculator: Calculator,
     google: GoogleSearchAPI,
