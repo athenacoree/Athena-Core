@@ -5,6 +5,7 @@ import { ThemeContext } from '@librechat/client';
 import type { ComponentType } from 'react';
 import type { TranslationKeys } from '~/hooks';
 import { ThemeSelector, LangSelector } from '../SettingsTabs/General/Selectors';
+import AccentColorSelector from '../SettingsTabs/General/AccentColorSelector';
 import ToggleSwitch from '../SettingsTabs/ToggleSwitch';
 import store from '~/store';
 
@@ -47,4 +48,8 @@ export function LangSetting() {
     [setLangcode],
   );
   return <LangSelector langcode={langcode} onChange={onChange} />;
+}
+
+export function AccentColorSetting() {
+  return <AccentColorSelector />;
 }

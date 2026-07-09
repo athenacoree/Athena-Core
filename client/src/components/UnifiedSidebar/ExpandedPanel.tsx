@@ -144,7 +144,7 @@ function ExpandedPanel({
   const toggleSidebarAriaKey = useShortcutAriaKey('toggleSidebar');
 
   return (
-    <div className="flex h-full flex-shrink-0 flex-col gap-2 border-r border-border-light bg-surface-primary-alt px-2 py-2">
+    <div className="iphone-blur flex h-full flex-shrink-0 flex-col gap-2 border-r border-border-light px-2 py-2">
       <TooltipAnchor
         side="right"
         description={toggleSidebarHint}
