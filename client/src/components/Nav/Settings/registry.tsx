@@ -19,7 +19,7 @@ import DisplayUsernameMessages from '../SettingsTabs/Account/DisplayUsernameMess
 import ConversationModeSwitch from '../SettingsTabs/Speech/ConversationModeSwitch';
 import EnableTwoFactorItem from '../SettingsTabs/Account/TwoFactorAuthentication';
 import ImportConversations from '../SettingsTabs/Data/ImportConversations';
-import { toggleControl, ThemeSetting, LangSetting } from './controls';
+import { toggleControl, ThemeSetting, LangSetting, AccentColorSetting } from './controls';
 import BackupCodesItem from '../SettingsTabs/Account/BackupCodesItem';
 import { EngineSTTSetting, EngineTTSSetting } from './SpeechControls';
 import FontSizeSelector from '../SettingsTabs/Chat/FontSizeSelector';
@@ -60,6 +60,14 @@ export const registry: SettingEntry[] = [
     labelKey: 'com_nav_language',
     keywords: ['locale', 'translation'],
     Component: LangSetting,
+  },
+  {
+    id: 'accentColor',
+    tab: GENERAL,
+    section: 'appearance',
+    labelKey: 'com_ui_accent_color',
+    keywords: ['color', 'accent', 'theme', 'customization'],
+    Component: AccentColorSetting,
   },
   {
     id: 'fontSize',

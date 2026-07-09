@@ -487,6 +487,7 @@
   "com_ui_2fa_enable": "Habilitar 2FA",
   "com_ui_2fa_enabled": "2FA habilitado",
   "com_ui_2fa_verification_required": "Ingrese su código 2FA para continuar",
+  "com_ui_accent_color": "Color de acento",
   "com_ui_accept": "Acepto",
   "com_ui_add": "Agregar",
   "com_ui_add_labels": "Agregar etiquetas",

@@ -50,7 +50,7 @@ export default function SettingsDialog({ open, onOpenChange }: TDialogProps) {
           leaveFrom="opacity-100"
           leaveTo="opacity-0"
         >
-          <div className="fixed inset-0 bg-black opacity-50 dark:opacity-80" aria-hidden="true" />
+          <div className="fixed inset-0 bg-black/30 backdrop-blur-sm" aria-hidden="true" />
         </TransitionChild>
         <TransitionChild
           enter="ease-out duration-200"
@@ -63,7 +63,7 @@ export default function SettingsDialog({ open, onOpenChange }: TDialogProps) {
           <div className="fixed inset-0 flex w-screen items-center justify-center p-4">
             <DialogPanel
               className={cn(
-                'flex max-h-[85vh] w-full flex-col overflow-hidden rounded-2xl bg-background shadow-2xl',
+                'iphone-blur flex max-h-[85vh] w-full flex-col overflow-hidden rounded-2xl shadow-2xl',
                 'md:h-[85vh] md:w-[900px]',
               )}
             >

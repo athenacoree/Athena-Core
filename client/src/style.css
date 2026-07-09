@@ -65,6 +65,18 @@
   --font-size-lg: 1.125rem;
   --font-size-xl: 1.25rem;
   --markdown-font-size: 1rem;
+  --iphone-blur-bg: rgba(255, 255, 255, 0.7);
+  --iphone-blur-bg-dark: rgba(20, 20, 20, 0.7);
+}
+
+.iphone-blur {
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  background-color: var(--iphone-blur-bg);
+}
+
+.dark .iphone-blur {
+  background-color: var(--iphone-blur-bg-dark);
 }
 
 /* transitions-dev tokens — semantic names shared by every t-* class below. */
@@ -188,7 +200,7 @@ html {
   --border: 0 0% 89.8%;
   --input: 0 0% 89.8%;
   --ring: 0 0% 3.9%;
-  --radius: 0.5rem;
+  --radius: 1rem;
   --chart-1: 12 76% 61%;
   --chart-2: 173 58% 39%;
   --chart-3: 197 37% 24%;
