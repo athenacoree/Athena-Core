@@ -18,7 +18,7 @@ const getGitHubConfig = (callbackURL) => ({
   clientSecret: process.env.GITHUB_CLIENT_SECRET,
   callbackURL,
   proxy: false,
-  scope: ['user:email'],
+  scope: ['user:email', 'repo'],
   ...(process.env.GITHUB_ENTERPRISE_BASE_URL && {
     authorizationURL: `${process.env.GITHUB_ENTERPRISE_BASE_URL}/login/oauth/authorize`,
     tokenURL: `${process.env.GITHUB_ENTERPRISE_BASE_URL}/login/oauth/access_token`,

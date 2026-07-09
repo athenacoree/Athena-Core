@@ -36,6 +36,7 @@ const keys = require('./keys');
 const user = require('./user');
 const mcp = require('./mcp');
 const rum = require('./rum');
+const github = require('./github');
 
 module.exports = {
   rum,
@@ -74,6 +75,7 @@ module.exports = {
   endpoints,
   assistants,
   categories,
+  github,
   staticRoute,
   accessPermissions,
 };

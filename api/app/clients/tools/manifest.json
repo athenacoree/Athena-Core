@@ -154,6 +154,13 @@
     ]
   },
   {
+    "name": "GitHub",
+    "pluginKey": "github",
+    "description": "Interact with GitHub repositories: list files, read content, and push changes.",
+    "icon": "assets/github.svg",
+    "authConfig": []
+  },
+  {
     "name": "Gemini Image Tools",
     "pluginKey": "gemini_image_gen",
     "description": "Generate high-quality images using Google's Gemini Image Models. Supports Gemini API or Vertex AI.",

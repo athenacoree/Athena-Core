@@ -1,8 +1,12 @@
 import React from 'react';
 import { InfoIcon } from 'lucide-react';
 import type { CodeBarProps } from '~/common';
+import { useRecoilValue } from 'recoil';
+import { useUserQuery } from 'librechat-data-provider/react-query';
+import store from '~/store';
 import useCopyCode from '~/components/Messages/Content/useCopyCode';
 import CopyButton from '~/components/Messages/Content/CopyButton';
+import PushToGitHubButton from '~/components/Messages/Content/PushToGitHubButton';
 import LangIcon from '~/components/Messages/Content/LangIcon';
 import RunCode from '~/components/Messages/Content/RunCode';
 import { useLocalize } from '~/hooks';
@@ -10,6 +14,8 @@ import { useLocalize } from '~/hooks';
 const CodeBar: React.FC<CodeBarProps> = React.memo(
   ({ lang, error, codeRef, blockIndex, plugin = null, allowExecution = true }) => {
     const localize = useLocalize();
+    const { data: user } = useUserQuery();
+    const showGitHubButton = useRecoilValue(store.showGitHubButton);
     const { isCopied, handleCopy } = useCopyCode(codeRef);
 
     return (
@@ -24,6 +30,9 @@ const CodeBar: React.FC<CodeBarProps> = React.memo(
           <div className="flex items-center justify-center gap-2">
             {allowExecution === true && (
               <RunCode lang={lang} codeRef={codeRef} blockIndex={blockIndex} />
+            )}
+            {showGitHubButton && user?.githubConnected && user?.githubActiveRepo && (
+              <PushToGitHubButton codeRef={codeRef} lang={lang} />
             )}
             {error !== true && (
               <CopyButton

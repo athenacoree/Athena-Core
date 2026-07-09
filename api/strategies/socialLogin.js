@@ -56,7 +56,12 @@ const socialLogin =
       }
 
       if (existingUser?.provider === provider) {
-        await handleExistingUser(existingUser, avatarUrl, appConfig, email);
+        const updates = {};
+        if (provider === 'github' && accessToken) {
+          updates.githubAccessToken = accessToken;
+          updates.githubConnected = true;
+        }
+        await handleExistingUser(existingUser, avatarUrl, appConfig, email, updates);
         return cb(null, existingUser);
       } else if (existingUser) {
         logger.info(
@@ -96,6 +101,8 @@ const socialLogin =
         name,
         emailVerified,
         appConfig,
+        githubAccessToken: provider === 'github' ? accessToken : undefined,
+        githubConnected: provider === 'github',
       });
       return cb(null, newUser);
     } catch (err) {

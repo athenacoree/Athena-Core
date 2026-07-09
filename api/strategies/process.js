@@ -20,10 +20,10 @@ const { updateUser, createUser, getUserById } = require('~/models');
  *
  * @throws {Error} Throws an error if there's an issue saving the updated user object.
  */
-const handleExistingUser = async (oldUser, avatarUrl, appConfig, email) => {
+const handleExistingUser = async (oldUser, avatarUrl, appConfig, email, extraUpdates = {}) => {
   const fileStrategy = appConfig?.fileStrategy ?? process.env.CDN_PROVIDER;
   const isLocal = fileStrategy === FileSources.local;
-  const updates = {};
+  const updates = { ...extraUpdates };
 
   let updatedAvatar = false;
   const hasManualFlag =
@@ -86,6 +86,7 @@ const createSocialUser = async ({
   name,
   appConfig,
   emailVerified,
+  ...extraUpdates
 }) => {
   const update = {
     email,
@@ -95,6 +96,7 @@ const createSocialUser = async ({
     username,
     name,
     emailVerified,
+    ...extraUpdates,
   };
 
   const balanceConfig = getBalanceConfig(appConfig);

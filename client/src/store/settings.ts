@@ -74,6 +74,10 @@ const localStorageAtoms = {
 
   // Account settings
   UsernameDisplay: atomWithLocalStorage('UsernameDisplay', true),
+
+  // GitHub settings
+  githubActiveRepo: atomWithLocalStorage<string | null>('githubActiveRepo', null),
+  showGitHubButton: atomWithLocalStorage<boolean>('showGitHubButton', true),
 };
 
 export default { ...staticAtoms, ...localStorageAtoms };

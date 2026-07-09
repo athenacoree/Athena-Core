@@ -1381,6 +1381,24 @@ export function getDomainServerBaseUrl(): string {
   return `${endpoints.apiBaseUrl()}/api`;
 }
 
+/* GitHub */
+export function getGitHubRepos(): Promise<any[]> {
+  return request.get(endpoints.githubRepos());
+}
+
+export function setGitHubActiveRepo(repoFullName: string): Promise<{ message: string }> {
+  return request.post(endpoints.githubActiveRepo(), { repoFullName });
+}
+
+export function pushToGitHub(payload: {
+  path: string;
+  content: string;
+  message: string;
+  branch?: string;
+}): Promise<{ message: string; result: any }> {
+  return request.post(endpoints.githubPush(), payload);
+}
+
 /* Active Jobs */
 export interface ActiveJobsResponse {
   activeJobIds: string[];

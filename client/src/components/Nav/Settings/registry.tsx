@@ -34,6 +34,7 @@ import { TokenCredits, AutoRefill } from './BillingControls';
 import SharedLinks from '../SettingsTabs/Data/SharedLinks';
 import { showThinkingAtom } from '~/store/showThinking';
 import ProviderKeys from '../SettingsTabs/ProviderKeys';
+import GitHubSettings from '../SettingsTabs/Account/GitHubSettings';
 import Avatar from '../SettingsTabs/Account/Avatar';
 import About from '../SettingsTabs/About/About';
 import ApiKeys from '../SettingsTabs/ApiKeys';
@@ -516,6 +517,13 @@ export const registry: SettingEntry[] = [
   },
 
   // Account · Profile
+  {
+    id: 'github',
+    tab: ACCOUNT,
+    section: 'profile',
+    labelKey: 'com_nav_github_connect',
+    Component: GitHubSettings,
+  },
   {
     id: 'avatar',
     tab: ACCOUNT,
