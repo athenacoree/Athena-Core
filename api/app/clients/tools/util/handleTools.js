@@ -38,6 +38,9 @@ const {
   TavilySearchResults,
   createGeminiImageTool,
   createOpenAIImageTools,
+  WikipediaTool,
+ YouTubeTool,
+ GoogleImageSearchTool,
 } = require('../');
 const {
   createMCPTool,
@@ -189,6 +192,9 @@ const loadTools = async ({
     'stable-diffusion': StructuredSD,
     'azure-ai-search': StructuredACS,
     traversaal_search: TraversaalSearch,
+    wikipedia: WikipediaTool,
+    youtube: YouTubeTool,
+    google_image_search: GoogleImageSearchTool,
     tavily_search_results_json: TavilySearchResults,
   };
 

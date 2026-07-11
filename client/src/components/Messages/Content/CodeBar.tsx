@@ -2,7 +2,6 @@ import React from 'react';
 import { InfoIcon } from 'lucide-react';
 import type { CodeBarProps } from '~/common';
 import { useRecoilValue } from 'recoil';
-import { useUserQuery } from 'librechat-data-provider/react-query';
 import store from '~/store';
 import useCopyCode from '~/components/Messages/Content/useCopyCode';
 import CopyButton from '~/components/Messages/Content/CopyButton';
@@ -14,7 +13,7 @@ import { useLocalize } from '~/hooks';
 const CodeBar: React.FC<CodeBarProps> = React.memo(
   ({ lang, error, codeRef, blockIndex, plugin = null, allowExecution = true }) => {
     const localize = useLocalize();
-    const { data: user } = useUserQuery();
+    const user = useRecoilValue(store.user);
     const showGitHubButton = useRecoilValue(store.showGitHubButton);
     const { isCopied, handleCopy } = useCopyCode(codeRef);
 

@@ -1,3 +1,5 @@
+import IntegrationSettings from "../SettingsTabs/General/IntegrationSettings";
+import BackupRestore from '../SettingsTabs/Data/BackupRestore';
 import { SettingsTabValues } from 'librechat-data-provider';
 import type { SettingEntry } from './types';
 import {
