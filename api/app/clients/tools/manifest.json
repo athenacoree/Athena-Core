@@ -173,5 +173,43 @@
         "optional": true
       }
     ]
+  },
+  {
+    "name": "Wikipedia",
+    "pluginKey": "wikipedia",
+    "description": "Busca información en Wikipedia sobre un tema específico.",
+    "icon": "assets/wikipedia.svg",
+    "authConfig": []
+  },
+  {
+    "name": "YouTube",
+    "pluginKey": "youtube",
+    "description": "Busca videos en YouTube.",
+    "icon": "assets/youtube.svg",
+    "authConfig": [
+      {
+        "authField": "YOUTUBE_API_KEY",
+        "label": "YouTube API Key",
+        "description": "Tu clave de API de YouTube Data API v3."
+      }
+    ]
+  },
+  {
+    "name": "Google Image Search",
+    "pluginKey": "google_image_search",
+    "description": "Busca imágenes en Google.",
+    "icon": "assets/google-images.svg",
+    "authConfig": [
+      {
+        "authField": "GOOGLE_IMAGE_SEARCH_API_KEY",
+        "label": "Google API Key",
+        "description": "Tu clave de API de Google Custom Search."
+      },
+      {
+        "authField": "GOOGLE_IMAGE_SEARCH_CX",
+        "label": "Google CX ID",
+        "description": "Tu ID de buscador personalizado (CX)."
+      }
+    ]
   }
 ]

@@ -17,7 +17,7 @@ const getGoogleConfig = (callbackURL) => ({
   clientID: process.env.GOOGLE_CLIENT_ID,
   clientSecret: process.env.GOOGLE_CLIENT_SECRET,
   callbackURL,
-  proxy: true,
+  proxy: true, scope: ['profile', 'email', 'https://www.googleapis.com/auth/youtube.readonly'],
 });
 
 const googleStrategy = () =>

@@ -2,7 +2,6 @@ import './polyfills/regeneratorRuntime';
 import { createRoot } from 'react-dom/client';
 import { initializeI18n } from './locales/i18n';
 import App from './App';
-import '@librechat/client/style.css';
 import './style.css';
 import './mobile.css';
 import { ApiErrorBoundaryProvider } from './hooks/ApiErrorBoundaryContext';

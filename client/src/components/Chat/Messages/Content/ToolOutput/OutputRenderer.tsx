@@ -1,3 +1,4 @@
+import { WikipediaRenderer, YouTubeRenderer, GoogleImageRenderer } from './SpecializedRenderers';
 import { useState, useMemo, useCallback } from 'react';
 import copy from 'copy-to-clipboard';
 import CopyButton from '~/components/Messages/Content/CopyButton';
@@ -67,7 +68,6 @@ function extractText(raw: string): ExtractedText {
         }
       }
 
-      // Render structured JSON as a highlighted code block
       return {
         text: JSON.stringify(parsed, null, 2),
         rawError: '',
@@ -92,6 +92,38 @@ interface OutputRendererProps {
 export default function OutputRenderer({ text }: OutputRendererProps) {
   const localize = useLocalize();
   const { text: displayText, rawError, error, isJson } = useMemo(() => extractText(text), [text]);
+
+  const specializedContent = useMemo(() => {
+    if (error || !isJson) {
+      return null;
+    }
+    try {
+      const parsed = JSON.parse(displayText);
+      if (parsed && typeof parsed === 'object') {
+        if (parsed.title && parsed.extract && (parsed.thumbnail || parsed.content_urls)) {
+          return <WikipediaRenderer data={parsed} />;
+        }
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          if (parsed[0].videoId && parsed[0].embedUrl) {
+            return <YouTubeRenderer data={parsed} />;
+          }
+          if (parsed[0].link && parsed[0].displayLink) {
+            return <GoogleImageRenderer data={parsed} />;
+          }
+        }
+        if (parsed.error && (parsed.error.includes('Wikipedia') || parsed.error.includes('YouTube') || parsed.error.includes('Google'))) {
+           return <div className="text-red-500 font-medium my-2 p-3 rounded-lg bg-red-500/10 border border-red-500/20">{parsed.error}</div>;
+        }
+      }
+    } catch {
+      // Ignore
+    }
+    return null;
+  }, [displayText, isJson, error]);
+
+  if (specializedContent) {
+    return specializedContent;
+  }
   const [isExpanded, setIsExpanded] = useState(false);
   const [showErrorDetails, setShowErrorDetails] = useState(false);
   const [isCopied, setIsCopied] = useState(false);
