@@ -57,6 +57,19 @@ export const googleSearchSchema: ExtendedJsonSchema = {
   required: ['query'],
 };
 
+/** Wikipedia tool JSON schema */
+export const wikipediaSchema: ExtendedJsonSchema = {
+  type: 'object',
+  properties: {
+    query: {
+      type: 'string',
+      minLength: 1,
+      description: 'The search query or article title to search for on Spanish Wikipedia.',
+    },
+  },
+  required: ['query'],
+};
+
 /** DALL-E 3 tool JSON schema */
 export const dalle3Schema: ExtendedJsonSchema = {
   type: 'object',
@@ -414,6 +427,12 @@ export const toolDefinitions: Record<string, ToolRegistryDefinition> = {
     description:
       'A search engine optimized for comprehensive, accurate, and trusted results. Useful for when you need to answer questions about current events.',
     schema: tavilySearchSchema,
+    toolType: 'builtin',
+  },
+  wikipedia: {
+    name: 'wikipedia',
+    description: 'Searches Wikipedia for articles and retrieves summaries using the Spanish Wikipedia API (without requiring an API key). Useful for getting background information, history, and facts about a wide variety of topics.',
+    schema: wikipediaSchema,
     toolType: 'builtin',
   },
   file_search: {

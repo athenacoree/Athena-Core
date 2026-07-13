@@ -18,6 +18,7 @@ const getGoogleConfig = (callbackURL) => ({
   clientSecret: process.env.GOOGLE_CLIENT_SECRET,
   callbackURL,
   proxy: true,
+  passReqToCallback: true,
 });
 
 const googleStrategy = () =>

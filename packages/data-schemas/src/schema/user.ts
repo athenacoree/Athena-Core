@@ -173,6 +173,18 @@ const userSchema: Schema<IUser> = new Schema<IUser>(
       type: String,
       index: true,
     },
+    consentThirdPartyAccounts: {
+      type: Boolean,
+      default: false,
+    },
+    thirdPartyAccounts: {
+      type: Schema.Types.Mixed,
+      default: {},
+    },
+    agentIdentity: {
+      type: Schema.Types.Mixed,
+      default: {},
+    },
   },
   { timestamps: true },
 );

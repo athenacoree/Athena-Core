@@ -64,6 +64,9 @@ export interface IUser extends Document {
   tenantId?: string;
   federatedTokens?: OIDCTokens;
   openidTokens?: OIDCTokens;
+  consentThirdPartyAccounts?: boolean;
+  thirdPartyAccounts?: any;
+  agentIdentity?: any;
 }
 
 export interface OIDCTokens {
@@ -101,6 +104,9 @@ export interface UpdateUserRequest {
     memories?: boolean;
   };
   skillStates?: Record<string, boolean>;
+  consentThirdPartyAccounts?: boolean;
+  thirdPartyAccounts?: any;
+  agentIdentity?: any;
 }
 
 export interface UserDeleteResult {

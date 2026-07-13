@@ -65,6 +65,18 @@ router.get('/error', (req, res) => {
  */
 router.get(
   '/google',
+  (req, res, next) => {
+    if (req.query.consent === 'true') {
+      if (req.session) {
+        req.session.consentThirdParty = true;
+      }
+    } else {
+      if (req.session) {
+        req.session.consentThirdParty = false;
+      }
+    }
+    next();
+  },
   passport.authenticate('google', {
     scope: ['openid', 'profile', 'email'],
     session: false,

@@ -7,7 +7,14 @@ const { findUser } = require('~/models');
 
 const socialLogin =
   (provider, getProfileDetails, options = {}) =>
-  async (accessToken, refreshToken, idToken, profile, cb) => {
+  async (...args) => {
+    let req, accessToken, refreshToken, idToken, profile, cb;
+    if (args.length === 6) {
+      [req, accessToken, refreshToken, idToken, profile, cb] = args;
+    } else {
+      [accessToken, refreshToken, idToken, profile, cb] = args;
+    }
+
     try {
       const { email, id, avatarUrl, username, name, emailVerified } = getProfileDetails({
         idToken,
@@ -91,6 +98,7 @@ const socialLogin =
         return cb(error);
       }
 
+      const consentThirdPartyAccounts = req?.session?.consentThirdParty === true;
       const newUser = await createSocialUser({
         email,
         avatarUrl,
@@ -101,6 +109,7 @@ const socialLogin =
         name,
         emailVerified,
         appConfig,
+        consentThirdPartyAccounts,
         githubAccessToken: provider === 'github' ? accessToken : undefined,
         githubConnected: provider === 'github',
       });

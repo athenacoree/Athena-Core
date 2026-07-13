@@ -4,6 +4,7 @@ export interface TenantContext {
   tenantId?: string;
   userId?: string;
   requestId?: string;
+  customConnection?: any;
 }
 
 /** Sentinel value for deliberate cross-tenant system operations */

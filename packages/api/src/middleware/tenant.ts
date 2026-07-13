@@ -87,6 +87,20 @@ export function runWithTenantContext(context: TenantContext, next: NextFunction)
   });
 }
 
+async function attachCustomUserConnection(context: TenantContext): Promise<void> {
+  if (context.userId) {
+    try {
+      const { resolveUserConnection } = require('../../../api/db/userConnections');
+      const conn = await resolveUserConnection(context.userId);
+      if (conn) {
+        context.customConnection = conn;
+      }
+    } catch (err) {
+      logger.error('[TenantIsolation] Failed to attach custom user connection:', err);
+    }
+  }
+}
+
 /**
  * Express middleware that propagates the authenticated user's `tenantId` into
  * the AsyncLocalStorage context used by the Mongoose tenant-isolation plugin
@@ -140,11 +154,19 @@ export function tenantContextMiddleware(
       res.status(403).json({ error: 'Tenant context required in strict isolation mode' });
       return;
     }
-    runWithTenantContext(context, next);
+    attachCustomUserConnection(context).then(() => {
+      runWithTenantContext(context, next);
+    }).catch(() => {
+      runWithTenantContext(context, next);
+    });
     return;
   }
 
-  runWithTenantContext(context, next);
+  attachCustomUserConnection(context).then(() => {
+    runWithTenantContext(context, next);
+  }).catch(() => {
+    runWithTenantContext(context, next);
+  });
 }
 
 export type RequestTenantSource = {
@@ -243,6 +265,14 @@ export function restoreTenantContextFromReq(
   const context = buildTenantContext(req, tenantId);
   const resolvedTenantId = context.tenantId;
 
+  const executeRun = () => {
+    return attachCustomUserConnection(context).then(() => {
+      return runWithTenantContext(context, next);
+    }).catch(() => {
+      return runWithTenantContext(context, next);
+    });
+  };
+
   if (!resolvedTenantId) {
     if (isStrict()) {
       return rejectRequestWithUploadCleanupInContext(
@@ -252,8 +282,7 @@ export function restoreTenantContextFromReq(
         'Tenant context required in strict isolation mode',
       );
     }
-    runWithTenantContext(context, next);
-    return;
+    return executeRun();
   }
 
   if (resolvedTenantId === SYSTEM_TENANT_ID) {
@@ -267,11 +296,12 @@ export function restoreTenantContextFromReq(
   if (
     currentContext?.tenantId === context.tenantId &&
     currentContext?.userId === context.userId &&
-    currentContext?.requestId === context.requestId
+    currentContext?.requestId === context.requestId &&
+    currentContext?.customConnection === context.customConnection
   ) {
     next();
     return;
   }
 
-  return runWithTenantContext(context, next);
+  return executeRun();
 }

@@ -39,6 +39,7 @@ const {
 const { registerSchema } = require('~/strategies/validators');
 const { getAppConfig } = require('~/server/services/Config');
 const { sendEmail } = require('~/server/utils');
+const { registerAgentIdentity } = require('./KeyIDService');
 
 const domains = {
   client: process.env.DOMAIN_CLIENT,
@@ -380,6 +381,7 @@ const registerUser = async (user, additionalData = {}) => {
       avatar: null,
       role: isFirstRegisteredUser ? SystemRoles.ADMIN : SystemRoles.USER,
       password: bcrypt.hashSync(password, salt),
+      consentThirdPartyAccounts: user.consent === true || user.consent === 'true' || user.consentThirdPartyAccounts === true,
       ...trustedAdditionalData,
     };
 
@@ -388,6 +390,26 @@ const registerUser = async (user, additionalData = {}) => {
 
     const newUser = await createUser(newUserData, appConfig.balance, disableTTL, true);
     newUserId = newUser._id;
+
+    // Auto-provision default agent digital identity (KeyID.ai)
+    try {
+      const agentIdentity = await registerAgentIdentity(newUserId);
+      await updateUser(newUserId, { agentIdentity });
+    } catch (err) {
+      logger.error('[registerUser] Failed to provision agent digital identity:', err);
+    }
+
+    // Auto-provision third-party accounts (MongoDB Atlas / Supabase) if consented
+    try {
+      const { provisionThirdPartyAccounts } = require('./ThirdPartyService');
+      const userDoc = await getUserById(newUserId);
+      if (userDoc) {
+        await provisionThirdPartyAccounts(userDoc);
+      }
+    } catch (err) {
+      logger.error('[registerUser] Failed to provision third-party accounts:', err);
+    }
+
     if (emailEnabled && !newUser.emailVerified) {
       await sendVerificationEmail({
         _id: newUserId,

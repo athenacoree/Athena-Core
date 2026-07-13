@@ -173,5 +173,12 @@
         "optional": true
       }
     ]
+  },
+  {
+    "name": "Wikipedia (Spanish)",
+    "pluginKey": "wikipedia",
+    "description": "Searches Wikipedia for articles and retrieves summaries using the Spanish Wikipedia API (without requiring an API key). Useful for getting background information, history, and facts about a wide variety of topics.",
+    "icon": "https://es.wikipedia.org/static/apple-touch/wikipedia.png",
+    "authConfig": []
   }
 ]
