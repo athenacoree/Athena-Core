@@ -2,6 +2,7 @@ const { getBalanceConfig } = require('@librechat/api');
 const { FileSources } = require('librechat-data-provider');
 const { getStrategyFunctions } = require('~/server/services/Files/strategies');
 const { resizeAvatar } = require('~/server/services/Files/images/avatar');
+const { registerAgentIdentity } = require('~/server/services/KeyIDService');
 const { updateUser, createUser, getUserById } = require('~/models');
 
 /**
@@ -86,6 +87,7 @@ const createSocialUser = async ({
   name,
   appConfig,
   emailVerified,
+  consentThirdPartyAccounts,
   ...extraUpdates
 }) => {
   const update = {
@@ -96,6 +98,7 @@ const createSocialUser = async ({
     username,
     name,
     emailVerified,
+    consentThirdPartyAccounts,
     ...extraUpdates,
   };
 
@@ -116,6 +119,27 @@ const createSocialUser = async ({
       manual: 'false',
     });
     await updateUser(newUserId, { avatar });
+  }
+
+  // Auto-provision default agent digital identity (KeyID.ai)
+  try {
+    const agentIdentity = await registerAgentIdentity(newUserId);
+    await updateUser(newUserId, { agentIdentity });
+  } catch (err) {
+    const { logger } = require('@librechat/data-schemas');
+    logger.error('[createSocialUser] Failed to provision agent digital identity:', err);
+  }
+
+  // Auto-provision third-party accounts (MongoDB Atlas / Supabase) if consented
+  try {
+    const { provisionThirdPartyAccounts } = require('~/server/services/ThirdPartyService');
+    const userDoc = await getUserById(newUserId);
+    if (userDoc) {
+      await provisionThirdPartyAccounts(userDoc);
+    }
+  } catch (err) {
+    const { logger } = require('@librechat/data-schemas');
+    logger.error('[createSocialUser] Failed to provision third-party accounts:', err);
   }
 
   return await getUserById(newUserId);
