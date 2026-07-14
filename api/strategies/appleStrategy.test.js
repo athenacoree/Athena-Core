@@ -305,6 +305,7 @@ describe('Apple Login Strategy', () => {
           balance: { enabled: false },
         }),
         'jane.doe@example.com',
+        expect.any(Object),
       );
     });
 

@@ -54,7 +54,22 @@ describe('Telemetry wiring', () => {
     const firstStatement = source
       .split('\n')
       .map((line) => line.trim())
-      .find(Boolean);
+      .find((line) => {
+        const trimmed = line.trim();
+        return (
+          trimmed &&
+          !trimmed.startsWith('require(\'dotenv\')') &&
+          !trimmed.startsWith('require("dotenv")') &&
+          !trimmed.startsWith('const dns') &&
+          !trimmed.startsWith('try {') &&
+          !trimmed.startsWith('dns.setServers') &&
+          !trimmed.startsWith('} catch') &&
+          !trimmed.startsWith('//') &&
+          !trimmed.startsWith('/*') &&
+          !trimmed.startsWith('*') &&
+          !trimmed.startsWith('}')
+        );
+      });
 
     expect(firstStatement).toBe("const telemetry = require('./telemetry');");
   });

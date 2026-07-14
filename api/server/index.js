@@ -137,6 +137,37 @@ const startServer = async () => {
   }
 
   await runAsSystem(seedDatabase);
+
+  const seedEmail = process.env.SEED_ADMIN_EMAIL?.trim();
+  const seedPassword = process.env.SEED_ADMIN_PASSWORD;
+  if (seedEmail && seedPassword) {
+    await runAsSystem(async () => {
+      try {
+        const { findUser } = require('~/models');
+        const { registerUser } = require('./services/AuthService');
+        const existingUser = await findUser({ email: seedEmail });
+        if (!existingUser) {
+          logger.info(`[Startup Seeding] No user found with email ${seedEmail}. Seeding admin user...`);
+          const username = seedEmail.split('@')[0];
+          const name = username;
+          const result = await registerUser(
+            { email: seedEmail, password: seedPassword, name, username, confirm_password: seedPassword },
+            { emailVerified: true, role: 'ADMIN' }
+          );
+          if (result.status === 200) {
+            logger.info(`[Startup Seeding] Admin user ${seedEmail} seeded successfully.`);
+          } else {
+            logger.error(`[Startup Seeding] Failed to seed admin user: ${result.message}`);
+          }
+        } else {
+          logger.debug(`[Startup Seeding] Admin user ${seedEmail} already exists.`);
+        }
+      } catch (err) {
+        logger.error('[Startup Seeding] Error during admin seeding:', err);
+      }
+    });
+  }
+
   /* Recover stuck `status: 'pending'` records from a crash mid-render.
    * `runAsSystem` is required — `File` is tenant-isolated and strict
    * mode rejects unscoped queries. Lazy sweep in the preview endpoint
