@@ -707,6 +707,13 @@ const setAuthTokens = async (userId, res, _session = null, req = null) => {
 
     setCloudFrontAuthCookies(req, res, user, { userId: user?._id ?? userId });
 
+    try {
+      const { seedUserAgents } = require('./Agents/seedUserAgents');
+      await seedUserAgents(userId);
+    } catch (seedErr) {
+      logger.error('[setAuthTokens] Failed to seed user agents:', seedErr);
+    }
+
     return token;
   } catch (error) {
     logger.error('[setAuthTokens] Error in setting authentication tokens:', error);
@@ -859,6 +866,17 @@ const setOpenIDAuthTokens = (
     }
 
     setCloudFrontAuthCookies(req, res, req.user, { userId, tenantId });
+
+    if (userId) {
+      try {
+        const { seedUserAgents } = require('./Agents/seedUserAgents');
+        seedUserAgents(userId).catch((seedErr) => {
+          logger.error('[setOpenIDAuthTokens] Failed to seed user agents in background:', seedErr);
+        });
+      } catch (requireErr) {
+        logger.error('[setOpenIDAuthTokens] Failed to require seedUserAgents:', requireErr);
+      }
+    }
 
     return appAuthToken;
   } catch (error) {
