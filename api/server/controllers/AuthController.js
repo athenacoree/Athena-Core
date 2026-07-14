@@ -68,12 +68,13 @@ const sanitizeUserForAuthResponse = (user) => {
 
 const getValidOpenIDReuseUserId = (parsedCookies) => {
   const openidUserId = parsedCookies.openid_user_id;
-  if (!openidUserId || !process.env.JWT_REFRESH_SECRET) {
+  const secret = process.env.JWT_REFRESH_SECRET || process.env.JWT_SECRET;
+  if (!openidUserId || !secret) {
     return null;
   }
 
   try {
-    const payload = jwt.verify(openidUserId, process.env.JWT_REFRESH_SECRET);
+    const payload = jwt.verify(openidUserId, secret);
     return typeof payload === 'object' && payload != null && typeof payload.id === 'string'
       ? payload.id
       : null;
@@ -262,7 +263,7 @@ const refreshController = async (req, res) => {
   }
 
   try {
-    const payload = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET);
+    const payload = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET || process.env.JWT_SECRET);
     const user = await getUserById(payload.id, AUTH_REFRESH_USER_PROJECTION);
     if (!user) {
       return res.status(401).redirect('/login');

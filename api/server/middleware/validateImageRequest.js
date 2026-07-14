@@ -28,7 +28,7 @@ function isValidObjectId(id) {
  */
 function validateToken(refreshToken) {
   try {
-    const payload = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET);
+    const payload = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET || process.env.JWT_SECRET);
 
     if (!isValidObjectId(payload.id)) {
       return { valid: false, error: 'Invalid User ID' };
