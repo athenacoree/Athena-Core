@@ -8,6 +8,16 @@ try {
   // Ignore or log if setServers is not supported in the current environment
 }
 
+// OpenRouter API Key validation and environment fallback mapping
+const openRouterApiKey = process.env.OPENROUTER_API_KEY || process.env.OPENROUTER_KEY;
+if (!openRouterApiKey && process.env.NODE_ENV !== 'test') {
+  throw new Error('Missing API Key for OpenRouter. Please configure OPENROUTER_API_KEY in your Render environment variables.');
+}
+if (openRouterApiKey) {
+  process.env.OPENROUTER_API_KEY = openRouterApiKey;
+  process.env.OPENROUTER_KEY = openRouterApiKey;
+}
+
 const telemetry = require('./telemetry');
 const fs = require('fs');
 const path = require('path');
