@@ -7,7 +7,7 @@ const { getUserById, findSession } = require('~/models');
 
 const verifySignedUserId = (token) => {
   try {
-    const payload = jwt.verify(token, process.env.JWT_REFRESH_SECRET);
+    const payload = jwt.verify(token, process.env.JWT_REFRESH_SECRET || process.env.JWT_SECRET);
     return typeof payload?.id === 'string' ? payload.id : null;
   } catch {
     return null;

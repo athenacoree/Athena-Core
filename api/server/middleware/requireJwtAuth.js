@@ -18,12 +18,13 @@ const hasPassportStrategy = (strategy) =>
 
 const getValidOpenIdReuseUserId = (parsedCookies) => {
   const openidUserId = parsedCookies.openid_user_id;
-  if (!openidUserId || !process.env.JWT_REFRESH_SECRET) {
+  const secret = process.env.JWT_REFRESH_SECRET || process.env.JWT_SECRET;
+  if (!openidUserId || !secret) {
     return null;
   }
 
   try {
-    const payload = jwt.verify(openidUserId, process.env.JWT_REFRESH_SECRET);
+    const payload = jwt.verify(openidUserId, secret);
     return typeof payload === 'object' && payload != null && typeof payload.id === 'string'
       ? payload.id
       : null;

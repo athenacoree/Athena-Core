@@ -245,7 +245,7 @@ export function createSessionMethods(mongoose: typeof import('mongoose')): {
           id: session.user,
           sessionId: session._id,
         },
-        secret: process.env.JWT_REFRESH_SECRET!,
+        secret: process.env.JWT_REFRESH_SECRET || process.env.JWT_SECRET!,
         expirationTime: Math.floor((expiresIn - Date.now()) / 1000),
       });
 
