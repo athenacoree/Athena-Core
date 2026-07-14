@@ -291,6 +291,18 @@ export const useRegisterUserMutation = (
   );
 };
 
+export const useUserQuery = (
+  config?: UseQueryOptions<t.TUser>,
+): QueryObserverResult<t.TUser> => {
+  return useQuery<t.TUser>([QueryKeys.user], () => dataService.getUser(), {
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
+    refetchOnMount: false,
+    retry: false,
+    ...config,
+  });
+};
+
 export const useUserKeyQuery = (
   name: string,
   config?: UseQueryOptions<t.TCheckUserKeyResponse>,

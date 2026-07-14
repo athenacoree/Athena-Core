@@ -127,7 +127,9 @@
     "@eslint/eslintrc": "^3.3.4",
     "@eslint/js": "^9.20.0",
     "@playwright/test": "^1.56.1",
+    "@react-spring/web": "^10.1.2",
     "@types/react-virtualized": "^9.22.0",
+    "@types/react-window": "^1.8.8",
     "caniuse-lite": "^1.0.30001741",
     "cross-env": "^7.0.3",
     "elliptic": "^6.6.1",
@@ -148,8 +150,12 @@
     "lint-staged": "^15.4.3",
     "prettier": "^3.5.0",
     "prettier-plugin-tailwindcss": "^0.6.11",
-    "turbo": "^2.9.17",
-    "typescript-eslint": "^8.60.1"
+    "react-window": "^1.8.11",
+    "tsdown": "^0.22.7",
+    "turbo": "^2.10.5",
+    "typescript": "^7.0.2",
+    "typescript-eslint": "^8.60.1",
+    "winston-daily-rotate-file": "^5.0.0"
   },
   "overrides": {
     "@xmldom/xmldom": "^0.8.13",

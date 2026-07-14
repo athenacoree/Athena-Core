@@ -23,7 +23,7 @@
   ],
   "scripts": {
     "clean": "rimraf dist",
-    "build": "npm run clean && tsdown && tsc -p tsconfig.build.json",
+    "build": "npm run clean && tsdown && tsc -p tsconfig.build.json ",
     "build:watch": "tsdown --watch",
     "rollup:api": "npx rollup -c server-rollup.config.js --bundleConfigAsCjs",
     "test": "jest --coverage --watch",
