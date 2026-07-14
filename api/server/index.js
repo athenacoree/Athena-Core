@@ -1,4 +1,13 @@
 require('dotenv').config();
+
+const dns = require('dns');
+// Set DNS servers to Google and Cloudflare to prevent querySrv issues in certain cloud environments like Render
+try {
+  dns.setServers(['8.8.8.8', '1.1.1.1']);
+} catch (err) {
+  // Ignore or log if setServers is not supported in the current environment
+}
+
 const telemetry = require('./telemetry');
 const fs = require('fs');
 const path = require('path');
