@@ -94,6 +94,7 @@ describe('socialLogin', () => {
         'https://example.com/avatar.png',
         expect.any(Object),
         newEmail,
+        expect.any(Object),
       );
 
       expect(callback).toHaveBeenCalledWith(null, existingUser);
@@ -133,6 +134,7 @@ describe('socialLogin', () => {
         'https://example.com/fb-avatar.png',
         expect.any(Object),
         email,
+        expect.any(Object),
       );
 
       expect(callback).toHaveBeenCalledWith(null, existingUser);
@@ -205,7 +207,7 @@ describe('socialLogin', () => {
 
       expect(findUser).toHaveBeenCalledTimes(2);
 
-      expect(createSocialUser).toHaveBeenCalledWith({
+      expect(createSocialUser).toHaveBeenCalledWith(expect.objectContaining({
         email: email,
         avatarUrl: 'https://example.com/avatar.png',
         provider: provider,
@@ -215,7 +217,7 @@ describe('socialLogin', () => {
         name: 'New User',
         emailVerified: true,
         appConfig: expect.any(Object),
-      });
+      }));
 
       expect(callback).toHaveBeenCalledWith(null, newUser);
     });

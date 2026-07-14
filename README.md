@@ -223,6 +223,31 @@ If you'd like to help translate LibreChat into your language, we'd love your con
 
 ---
 
+## 🚀 Athena Core Setup on Render (Google OAuth & Seed Admin Account)
+
+To deploy Athena Core successfully on Render, you must configure specific environment variables to create your initial admin account and make Google OAuth work seamlessly.
+
+### 1. Seeding your Initial Admin Account
+Since local registration may be disabled or you don't have email configuration (SMTP) to verify new accounts, you can use the automatic seeding feature on startup. Add the following environment variables to your Render service:
+
+* `SEED_ADMIN_EMAIL`: The email address for the initial admin account (e.g., `admin@yourdomain.com`).
+* `SEED_ADMIN_PASSWORD`: A secure password for this admin account (minimum 8 characters).
+
+On server boot, if no user exists with this email, Athena Core will automatically register the account with verified email status and elevated `ADMIN` privileges.
+
+### 2. Google OAuth Configuration
+To allow users to log in or register using Google, define these environment variables in your Render Environment settings:
+
+* `ALLOW_SOCIAL_LOGIN`: Set to `true` to enable social login options.
+* `ALLOW_SOCIAL_REGISTRATION`: Set to `true` to allow new accounts to be automatically created when signing in with Google for the first time.
+* `GOOGLE_CLIENT_ID`: Your Google OAuth Client ID (from the Google Cloud Console).
+* `GOOGLE_CLIENT_SECRET`: Your Google OAuth Client Secret.
+* `GOOGLE_CALLBACK_URL`: Set to `/oauth/google/callback` (Athena Core maps this callback relative to your Domain Server).
+* `DOMAIN_SERVER`: Your backend server domain URL (e.g., `https://athena-core-backend.onrender.com`).
+* `DOMAIN_CLIENT`: Your frontend application URL (e.g., `https://athena-core.onrender.com`).
+
+---
+
 ## 🎉 Special Thanks
 
 We thank [Locize](https://locize.com) for their translation management tools that support multiple languages in LibreChat.
