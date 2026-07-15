@@ -37,6 +37,7 @@ import ProviderKeys from '../SettingsTabs/ProviderKeys';
 import GitHubSettings from '../SettingsTabs/Account/GitHubSettings';
 import Avatar from '../SettingsTabs/Account/Avatar';
 import About from '../SettingsTabs/About/About';
+import Identity from '../SettingsTabs/Identity';
 import ApiKeys from '../SettingsTabs/ApiKeys';
 import MemoryToggle from './MemoryToggle';
 import { TTSEndpoints } from '~/common';
@@ -584,5 +585,15 @@ export const registry: SettingEntry[] = [
     keywords: ['version', 'build', 'diagnostics'],
     show: (ctx) => ctx.aboutEnabled,
     Component: About,
+  },
+  // Identity
+  {
+    id: 'identitySettings',
+    tab: 'identity' as SettingsTab,
+    section: 'identity',
+    labelKey: 'com_nav_setting_identity' as any,
+    keywords: ['identity', 'keyid', 'whatsapp', 'telegram', 'instagram', 'correo', 'telefono'],
+    show: (ctx) => ctx.isAdmin === true,
+    Component: Identity,
   },
 ];

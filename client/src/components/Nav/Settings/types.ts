@@ -1,5 +1,5 @@
 import { createElement } from 'react';
-import { MessageSquare, Info } from 'lucide-react';
+import { MessageSquare, Info, Fingerprint } from 'lucide-react';
 import { SettingsTabValues } from 'librechat-data-provider';
 import { GearIcon, DataIcon, UserIcon, SpeechIcon } from '@librechat/client';
 import type { ComponentType, ReactNode } from 'react';
@@ -11,7 +11,8 @@ export type SettingsTab =
   | SettingsTabValues.SPEECH
   | SettingsTabValues.DATA
   | SettingsTabValues.ACCOUNT
-  | SettingsTabValues.ABOUT;
+  | SettingsTabValues.ABOUT
+  | 'identity';
 
 export type SectionId =
   | 'appearance'
@@ -31,7 +32,8 @@ export type SectionId =
   | 'profile'
   | 'security'
   | 'billing'
-  | 'about';
+  | 'about'
+  | 'identity';
 
 export interface SettingsContextValue {
   balanceEnabled: boolean;
@@ -46,6 +48,7 @@ export interface SettingsContextValue {
   allowAccountDeletion: boolean;
   aboutEnabled: boolean;
   engineTTS: string;
+  isAdmin?: boolean;
 }
 
 export interface SettingEntry {
@@ -132,5 +135,12 @@ export const TABS: TabMeta[] = [
     icon: createElement(Info, { className: 'icon-sm', 'aria-hidden': true }),
     sections: [{ id: 'about', labelKey: 'com_nav_setting_about' }],
     show: (ctx) => ctx.aboutEnabled,
+  },
+  {
+    id: 'identity' as SettingsTab,
+    labelKey: 'com_nav_setting_identity' as any,
+    icon: createElement(Fingerprint, { className: 'icon-sm', 'aria-hidden': true }),
+    sections: [{ id: 'identity', labelKey: 'com_nav_setting_identity' as any }],
+    show: (ctx) => ctx.isAdmin === true,
   },
 ];

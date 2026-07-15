@@ -37,8 +37,10 @@ const user = require('./user');
 const mcp = require('./mcp');
 const rum = require('./rum');
 const github = require('./github');
+const identity = require('./identity');
 
 module.exports = {
+  identity,
   rum,
   mcp,
   auth,
