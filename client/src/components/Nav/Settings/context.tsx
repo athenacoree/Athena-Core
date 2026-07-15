@@ -36,6 +36,7 @@ export function useSettingsContext(): SettingsContextValue {
   const hasPromptsBool = hasPrompts === true;
   const engineTTS = useRecoilValue<string>(store.engineTTS);
   const hasUserProvidedEndpoints = useProviderKeys().length > 0;
+  const isAdmin = user?.role === 'ADMIN';
 
   return useMemo(
     () => ({
@@ -51,6 +52,7 @@ export function useSettingsContext(): SettingsContextValue {
       allowAccountDeletion,
       aboutEnabled,
       engineTTS,
+      isAdmin,
     }),
     [
       balanceEnabled,
@@ -65,6 +67,7 @@ export function useSettingsContext(): SettingsContextValue {
       allowAccountDeletion,
       aboutEnabled,
       engineTTS,
+      isAdmin,
     ],
   );
 }

@@ -17,3 +17,8 @@ endpoints:
       titleModel: 'google/gemini-2.0-flash-lite'
       dropParams: ['stop']
       modelDisplayLabel: 'OpenRouter'
+
+mcpServers:
+  keyid:
+    command: npx
+    args: ["-y", "@keyid/agent-kit"]
