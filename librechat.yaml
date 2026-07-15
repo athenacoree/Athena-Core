@@ -20,5 +20,4 @@ endpoints:
 
 mcpServers:
   keyid:
-    command: npx
-    args: ["-y", "@keyid/agent-kit"]
+    url: "https://keyid.ai/mcp"
