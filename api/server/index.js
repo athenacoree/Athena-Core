@@ -8,17 +8,21 @@ try {
   // Ignore or log if setServers is not supported in the current environment
 }
 
+const telemetry = require('./telemetry');
+
 // OpenRouter API Key validation and environment fallback mapping
 const openRouterApiKey = process.env.OPENROUTER_API_KEY || process.env.OPENROUTER_KEY;
 if (!openRouterApiKey && process.env.NODE_ENV !== 'test') {
-  throw new Error('Missing API Key for OpenRouter. Please configure OPENROUTER_API_KEY in your Render environment variables.');
+  console.error('\n==================================================================================');
+  console.error('ERROR: Missing API Key for OpenRouter.');
+  console.error('Please configure OPENROUTER_API_KEY or OPENROUTER_KEY in your Render environment variables.');
+  console.error('This key is required for the seeded agents and OpenRouter endpoints to work.');
+  console.error('==================================================================================\n');
 }
 if (openRouterApiKey) {
   process.env.OPENROUTER_API_KEY = openRouterApiKey;
   process.env.OPENROUTER_KEY = openRouterApiKey;
 }
-
-const telemetry = require('./telemetry');
 const fs = require('fs');
 const path = require('path');
 require('module-alias')({ base: path.resolve(__dirname, '..') });
