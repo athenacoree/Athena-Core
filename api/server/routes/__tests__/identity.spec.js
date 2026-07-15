@@ -9,6 +9,7 @@ jest.mock('~/server/services/identityService', () => ({
   getMessages: jest.fn(),
   sendMessage: jest.fn(),
   getPlatforms: jest.fn(),
+  receiveMessage: jest.fn(),
 }));
 
 jest.mock('~/server/middleware/requireJwtAuth', () => (req, res, next) => next());
@@ -146,6 +147,31 @@ describe('Identity Routes', () => {
       expect(response.status).toBe(200);
       expect(response.body).toEqual(mockPlatforms);
       expect(identityService.getPlatforms).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('POST /incoming', () => {
+    it('should receive an incoming message and respond with VALE', async () => {
+      const mockIncoming = { success: true, message: 'Processed incoming message and sent automated response from VALE', response: 'Hi, I am VALE.' };
+      identityService.receiveMessage.mockResolvedValue(mockIncoming);
+
+      const response = await request(app)
+        .post('/api/identity/incoming')
+        .send({ platform: 'WhatsApp', sender: '+15550100', content: 'Hello VALE!' });
+
+      expect(response.status).toBe(200);
+      expect(response.body).toEqual(mockIncoming);
+      expect(identityService.receiveMessage).toHaveBeenCalledWith('WhatsApp', '+15550100', 'Hello VALE!');
+    });
+
+    it('should return 400 when missing parameters', async () => {
+      const response = await request(app)
+        .post('/api/identity/incoming')
+        .send({ platform: 'WhatsApp', sender: '+15550100' }); // missing content
+
+      expect(response.status).toBe(400);
+      expect(response.body).toEqual({ error: 'Missing required body fields: platform, sender, content' });
+      expect(identityService.receiveMessage).not.toHaveBeenCalled();
     });
   });
 });

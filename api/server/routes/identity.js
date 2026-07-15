@@ -89,6 +89,24 @@ router.post('/send', async (req, res) => {
 });
 
 /**
+ * POST /api/identity/incoming
+ * Recibir un mensaje entrante (ej. simulación de webhook o WhatsApp) y responder automáticamente con VALE
+ */
+router.post('/incoming', async (req, res) => {
+  try {
+    const { platform, sender, content } = req.body;
+    if (!platform || !sender || !content) {
+      return res.status(400).json({ error: 'Missing required body fields: platform, sender, content' });
+    }
+    const result = await identityService.receiveMessage(platform, sender, content);
+    res.status(200).json(result);
+  } catch (error) {
+    logger.error('[identity/incoming] Error:', error);
+    res.status(500).json({ error: error.message || 'Internal Server Error' });
+  }
+});
+
+/**
  * GET /api/identity/platforms
  * Lista de plataformas disponibles
  */

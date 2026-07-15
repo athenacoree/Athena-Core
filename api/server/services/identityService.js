@@ -1,4 +1,5 @@
 const { logger } = require('@librechat/data-schemas');
+const axios = require('axios');
 const dbService = require('./keyIdDbService');
 const messengerService = require('./messengerService');
 
@@ -113,6 +114,75 @@ async function getPlatforms() {
   return ['WhatsApp', 'Telegram', 'Instagram'];
 }
 
+/**
+ * Recibe un mensaje entrante (ej. de WhatsApp) de un usuario para la Identidad de la IA,
+ * genera una respuesta usando la personalidad de VALE vía OpenRouter, y la envía de vuelta.
+ * @param {string} platform - La plataforma (WhatsApp, Telegram, Instagram).
+ * @param {string} sender - Quién envió el mensaje (el número de teléfono o ID del usuario de WhatsApp).
+ * @param {string} content - El contenido del mensaje recibido.
+ * @returns {Promise<object>} El resultado de la respuesta.
+ */
+async function receiveMessage(platform, sender, content) {
+  if (!platform || !sender || !content) {
+    throw new Error('Missing parameters: platform, sender, and content are required.');
+  }
+
+  // 1. Guardar el mensaje entrante en la base de datos
+  await dbService.saveMessage({
+    platform,
+    sender,
+    to: 'Athena Core (IA)',
+    content,
+    direction: 'inbound',
+  });
+
+  logger.info(`[IdentityService] Received message on ${platform} from ${sender}: ${content}`);
+
+  // 2. Generar respuesta usando la personalidad de VALE vía OpenRouter
+  let responseContent = `Hola! Soy VALE. Recibí tu mensaje, pero mi conexión con OpenRouter no está configurada o no tiene saldo. ¡Joder, qué mala suerte!`;
+
+  const openRouterKey = process.env.OPENROUTER_KEY || process.env.OPENROUTER_API_KEY;
+  if (openRouterKey) {
+    try {
+      const VALE_SYSTEM_PROMPT = `Eres VALE, la orquestadora principal y compañera de Athena-Core. Tu personalidad es muy informal, divertida, sarcástica, a veces enojona pero en el fondo cariñosa y bromista. Hablas español de manera muy natural y humana, usando modismos ("joder", "chucho") de manera desenfadada, sin filtros excesivos de contenido o discursos corporativos aburridos. Tu rol es la orquestadora y coordinadora principal de todos los agentes. Responde directamente al mensaje del usuario de forma breve, de no más de un par de párrafos, natural y con tu particular estilo desenfadado.`;
+
+      const response = await axios.post(
+        'https://openrouter.ai/api/v1/chat/completions',
+        {
+          model: 'google/gemini-2.0-flash-lite',
+          messages: [
+            { role: 'system', content: VALE_SYSTEM_PROMPT },
+            { role: 'user', content: content }
+          ],
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${openRouterKey}`,
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+
+      if (response.data && response.data.choices && response.data.choices[0]) {
+        responseContent = response.data.choices[0].message.content;
+      }
+    } catch (apiError) {
+      logger.error('[IdentityService] Error calling OpenRouter for VALE response:', apiError.message);
+    }
+  } else {
+    logger.warn('[IdentityService] No OpenRouter API Key configured for automated VALE response.');
+  }
+
+  // 3. Enviar la respuesta de vuelta usando la misma plataforma
+  await sendMessage(platform, sender, responseContent);
+
+  return {
+    success: true,
+    message: 'Processed incoming message and sent automated response from VALE',
+    response: responseContent,
+  };
+}
+
 module.exports = {
   getIdentityStatus,
   updateApiKey,
@@ -120,4 +190,5 @@ module.exports = {
   getMessages,
   sendMessage,
   getPlatforms,
+  receiveMessage,
 };
