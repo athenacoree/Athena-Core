@@ -102,4 +102,50 @@ router.get('/platforms', async (req, res) => {
   }
 });
 
+/**
+ * POST /api/identity/google-config
+ * Guardar/actualizar la configuración de Google OAuth en la base de datos
+ */
+router.post('/google-config', async (req, res) => {
+  try {
+    const { clientId, clientSecret, callbackUrl } = req.body;
+    if (!clientId || !clientSecret) {
+      return res.status(400).json({ error: 'Missing required fields: clientId, clientSecret' });
+    }
+    const result = await identityService.updateGoogleConfig({ clientId, clientSecret, callbackUrl });
+    res.status(200).json(result);
+  } catch (error) {
+    logger.error('[identity/google-config] Error:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+/**
+ * DELETE /api/identity/google-config
+ * Borrar la configuración de Google OAuth de la base de datos
+ */
+router.delete('/google-config', async (req, res) => {
+  try {
+    const result = await identityService.deleteGoogleConfig();
+    res.status(200).json(result);
+  } catch (error) {
+    logger.error('[identity/google-config] DELETE Error:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+/**
+ * DELETE /api/identity/identity
+ * Borrar la identidad del agente de la base de datos
+ */
+router.delete('/identity', async (req, res) => {
+  try {
+    const result = await identityService.deleteIdentity();
+    res.status(200).json(result);
+  } catch (error) {
+    logger.error('[identity/identity] DELETE Error:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
 module.exports = router;

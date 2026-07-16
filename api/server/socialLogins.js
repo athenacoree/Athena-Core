@@ -78,10 +78,9 @@ async function configureOpenId(app) {
 const configureSocialLogins = async (app) => {
   logger.info('Configuring social logins...');
 
-  if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
-    passport.use(googleLogin());
-    passport.use('googleAdmin', googleAdminLogin());
-  }
+  // Always register Google strategies to support dynamic configuration from DB/env after startup
+  passport.use(googleLogin());
+  passport.use('googleAdmin', googleAdminLogin());
   if (process.env.FACEBOOK_CLIENT_ID && process.env.FACEBOOK_CLIENT_SECRET) {
     passport.use(facebookLogin());
     passport.use('facebookAdmin', facebookAdminLogin());

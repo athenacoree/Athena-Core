@@ -11,6 +11,8 @@ async function getIdentityStatus() {
   // Enabled if either process.env.KEYID_ENABLED is true OR we have a valid key saved in DB
   const configured = process.env.KEYID_ENABLED === 'true' || Boolean(config.apiKey) || Boolean(config.publicKey);
 
+  const googleConfigured = Boolean(config.googleClientId && config.googleClientSecret) || (Boolean(process.env.GOOGLE_CLIENT_ID) && Boolean(process.env.GOOGLE_CLIENT_SECRET));
+
   return {
     configured,
     apiKey: config.apiKey || '',
@@ -19,6 +21,10 @@ async function getIdentityStatus() {
     provisioned: config.isProvisioned,
     email: config.isProvisioned ? config.email || 'athena.core@keyid.ai' : null,
     phone: config.isProvisioned ? config.phone || '+15550199' : null,
+    googleClientId: config.googleClientId || '',
+    googleClientSecret: config.googleClientSecret || '',
+    googleCallbackUrl: config.googleCallbackUrl || '',
+    googleConfigured,
   };
 }
 
@@ -154,6 +160,51 @@ async function getPlatforms() {
   return ['WhatsApp', 'Telegram', 'Instagram'];
 }
 
+/**
+ * Resets/deletes the agent's digital identity from the database.
+ * @returns {Promise<object>} Result.
+ */
+async function deleteIdentity() {
+  logger.info('[IdentityService] Deleting digital identity and keys.');
+  await dbService.updateConfig({
+    isProvisioned: false,
+    email: '',
+    phone: '',
+    publicKey: '',
+    privateKey: '',
+  });
+  return { success: true };
+}
+
+/**
+ * Saves/updates the Google OAuth configuration.
+ * @param {object} params - The credentials.
+ * @returns {Promise<object>} Result.
+ */
+async function updateGoogleConfig({ clientId, clientSecret, callbackUrl }) {
+  logger.info('[IdentityService] Saving Google OAuth configuration.');
+  await dbService.updateConfig({
+    googleClientId: clientId,
+    googleClientSecret: clientSecret,
+    googleCallbackUrl: callbackUrl || '',
+  });
+  return { success: true };
+}
+
+/**
+ * Deletes/clears the Google OAuth configuration.
+ * @returns {Promise<object>} Result.
+ */
+async function deleteGoogleConfig() {
+  logger.info('[IdentityService] Deleting Google OAuth configuration.');
+  await dbService.updateConfig({
+    googleClientId: '',
+    googleClientSecret: '',
+    googleCallbackUrl: '',
+  });
+  return { success: true };
+}
+
 module.exports = {
   getIdentityStatus,
   updateApiKey,
@@ -162,4 +213,7 @@ module.exports = {
   getMessages,
   sendMessage,
   getPlatforms,
+  deleteIdentity,
+  updateGoogleConfig,
+  deleteGoogleConfig,
 };
