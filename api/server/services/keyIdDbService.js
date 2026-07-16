@@ -3,6 +3,8 @@ const mongoose = require('mongoose');
 const KeyIDConfigSchema = new mongoose.Schema({
   key: { type: String, default: 'global', unique: true },
   apiKey: { type: String, default: '' },
+  publicKey: { type: String, default: '' },
+  privateKey: { type: String, default: '' },
   isProvisioned: { type: Boolean, default: false },
   email: { type: String, default: '' },
   phone: { type: String, default: '' },
@@ -32,6 +34,8 @@ async function getConfig() {
       config = await KeyIDConfig.create({
         key: 'global',
         apiKey: process.env.KEYID_API_KEY || '',
+        publicKey: '',
+        privateKey: '',
         isProvisioned: false,
         email: '',
         phone: '',
@@ -42,6 +46,8 @@ async function getConfig() {
     console.error('[KeyIDDbService] getConfig error:', error);
     return {
       apiKey: process.env.KEYID_API_KEY || '',
+      publicKey: '',
+      privateKey: '',
       isProvisioned: false,
       email: '',
       phone: '',

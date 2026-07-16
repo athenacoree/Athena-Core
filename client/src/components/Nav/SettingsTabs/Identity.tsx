@@ -30,6 +30,8 @@ interface Message {
 interface IdentityStatus {
   configured: boolean;
   apiKey?: string;
+  publicKey?: string;
+  privateKey?: string;
   provisioned: boolean;
   email: string | null;
   phone: string | null;
@@ -43,7 +45,8 @@ export default function Identity() {
   const [platforms, setPlatforms] = useState<string[]>([]);
 
   // Config key states
-  const [apiKeyInput, setApiKeyInput] = useState<string>('');
+  const [publicKeyInput, setPublicKeyInput] = useState<string>('');
+  const [privateKeyInput, setPrivateKeyInput] = useState<string>('');
   const [savingApiKey, setSavingApiKey] = useState<boolean>(false);
 
   // Connection QR states
@@ -72,7 +75,8 @@ export default function Identity() {
 
       const statusRes = await axios.get('/api/identity/status');
       setStatus(statusRes.data);
-      setApiKeyInput(statusRes.data.apiKey || '');
+      setPublicKeyInput(statusRes.data.publicKey || '');
+      setPrivateKeyInput(statusRes.data.privateKey || '');
 
       if (statusRes.data.provisioned) {
         const msgsRes = await axios.get('/api/identity/messages');
@@ -100,16 +104,19 @@ export default function Identity() {
     setErrorMsg(null);
     setSuccessMsg(null);
     try {
-      const res = await axios.post('/api/identity/config', { apiKey: apiKeyInput });
+      const res = await axios.post('/api/identity/config', {
+        publicKey: publicKeyInput,
+        privateKey: privateKeyInput,
+      });
       if (res.data.success) {
-        setSuccessMsg('KeyID API Key guardada exitosamente en la base de datos.');
+        setSuccessMsg('Configuración de KeyID guardada exitosamente en la base de datos.');
         // Refresh status
         const statusRes = await axios.get('/api/identity/status');
         setStatus(statusRes.data);
       }
     } catch (err: any) {
-      console.error('Error saving API Key:', err);
-      setErrorMsg('Error al guardar la API Key.');
+      console.error('Error saving config:', err);
+      setErrorMsg('Error al guardar la configuración.');
     } finally {
       setSavingApiKey(false);
     }
@@ -126,7 +133,11 @@ export default function Identity() {
           provisioned: true,
           email: res.data.email,
           phone: res.data.phone,
+          publicKey: res.data.publicKey,
+          privateKey: res.data.privateKey,
         });
+        setPublicKeyInput(res.data.publicKey || '');
+        setPrivateKeyInput(res.data.privateKey || '');
         // Fetch fresh messages
         const msgsRes = await axios.get('/api/identity/messages');
         setReceivedMessages(msgsRes.data.received || []);
@@ -251,41 +262,57 @@ export default function Identity() {
           </div>
         )}
 
-        {/* API Key management inside the settings box */}
+        {/* API Key and Ed25519 Keys management inside the settings box */}
         <form
           onSubmit={handleSaveApiKey}
-          className="flex flex-col gap-3 rounded-lg border border-border-light bg-surface-tertiary p-4"
+          className="flex flex-col gap-4 rounded-lg border border-border-light bg-surface-tertiary p-4"
         >
           <div className="flex items-center gap-2">
             <Key className="h-4 w-4 text-brand-purple" />
             <span className="text-xs font-semibold text-text-primary">
-              Configuración de Credenciales
+              Configuración de Llaves Criptográficas (Ed25519)
             </span>
           </div>
-          <div className="flex flex-col gap-2 md:flex-row">
-            <input
-              type="password"
-              value={apiKeyInput}
-              onChange={(e) => setApiKeyInput(e.target.value)}
-              placeholder="Ingresa tu KeyID API Key (opcional en capa gratuita)"
-              className="flex-1 rounded-lg border border-border-light bg-surface-secondary p-2 font-mono text-xs focus:outline-none focus:ring-1 focus:ring-brand-purple"
-            />
+
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+            <div className="flex flex-col gap-1.5">
+              <label className="text-xs font-medium text-text-secondary">Clave Pública Ed25519 (Hex)</label>
+              <input
+                type="text"
+                value={publicKeyInput}
+                onChange={(e) => setPublicKeyInput(e.target.value)}
+                placeholder="Se auto-generará si se deja en blanco"
+                className="rounded-lg border border-border-light bg-surface-secondary p-2 font-mono text-xs focus:outline-none focus:ring-1 focus:ring-brand-purple"
+              />
+            </div>
+            <div className="flex flex-col gap-1.5">
+              <label className="text-xs font-medium text-text-secondary">Clave Privada Ed25519 (Hex)</label>
+              <input
+                type="password"
+                value={privateKeyInput}
+                onChange={(e) => setPrivateKeyInput(e.target.value)}
+                placeholder="Se auto-generará si se deja en blanco"
+                className="rounded-lg border border-border-light bg-surface-secondary p-2 font-mono text-xs focus:outline-none focus:ring-1 focus:ring-brand-purple"
+              />
+            </div>
+          </div>
+
+          <div className="flex justify-between items-center mt-2 flex-col md:flex-row gap-3">
+            <p className="text-[11px] text-text-tertiary leading-normal max-w-xl">
+              Las claves Ed25519 se utilizan para firmar solicitudes y autenticarte con el servicio externo de KeyID.ai. Si no las tienes, se generarán de forma segura al crear la identidad de la IA.
+            </p>
             <button
               type="submit"
               disabled={savingApiKey}
-              className="hover:bg-brand-purple/90 flex items-center justify-center gap-1.5 rounded-lg bg-brand-purple px-4 py-2 text-xs font-semibold text-white transition-colors disabled:opacity-50"
+              className="hover:bg-brand-purple/90 flex items-center justify-center gap-1.5 rounded-lg bg-brand-purple px-4 py-2 text-xs font-semibold text-white transition-colors disabled:opacity-50 whitespace-nowrap"
             >
               {savingApiKey ? (
                 <RefreshCw className="h-3.5 w-3.5 animate-spin" />
               ) : (
-                'Guardar Credencial'
+                'Guardar Configuración'
               )}
             </button>
           </div>
-          <p className="text-[11px] text-text-tertiary">
-            La clave de API se guarda de manera segura en la base de datos para habilitar la
-            autenticación con el servicio externo de KeyID.
-          </p>
         </form>
 
         {/* Detailed state or action button */}
@@ -328,6 +355,14 @@ export default function Identity() {
                 {status?.phone}
               </span>
             </div>
+            {status?.publicKey && (
+              <div className="flex flex-col gap-1.5 rounded-lg border border-border-light bg-surface-tertiary p-3 md:col-span-2">
+                <span className="text-xs font-medium text-text-secondary">Clave Pública Activa (Ed25519)</span>
+                <span className="selection:bg-brand-purple/20 break-all font-mono text-xs">
+                  {status.publicKey}
+                </span>
+              </div>
+            )}
           </div>
         )}
       </div>

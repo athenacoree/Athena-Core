@@ -9,11 +9,13 @@ const messengerService = require('./messengerService');
 async function getIdentityStatus() {
   const config = await dbService.getConfig();
   // Enabled if either process.env.KEYID_ENABLED is true OR we have a valid key saved in DB
-  const configured = process.env.KEYID_ENABLED === 'true' || Boolean(config.apiKey);
+  const configured = process.env.KEYID_ENABLED === 'true' || Boolean(config.apiKey) || Boolean(config.publicKey);
 
   return {
     configured,
     apiKey: config.apiKey || '',
+    publicKey: config.publicKey || '',
+    privateKey: config.privateKey || '',
     provisioned: config.isProvisioned,
     email: config.isProvisioned ? config.email || 'athena.core@keyid.ai' : null,
     phone: config.isProvisioned ? config.phone || '+15550199' : null,
@@ -35,24 +37,63 @@ async function updateApiKey(apiKey) {
 }
 
 /**
+ * Saves/updates the KeyID configuration in the database.
+ * @param {object} updates - The config fields to update (apiKey, publicKey, privateKey).
+ * @returns {Promise<object>} The updated config.
+ */
+async function updateConfig(updates) {
+  logger.info('[IdentityService] Updating global KeyID configuration in the database.');
+  const config = await dbService.updateConfig(updates);
+  return {
+    success: true,
+    apiKey: config.apiKey,
+    publicKey: config.publicKey,
+    privateKey: config.privateKey,
+  };
+}
+
+/**
  * Provisions a digital identity (email and phone) for the agent and saves to the database.
  * @returns {Promise<object>} The provisioned identity details.
  */
 async function provisionIdentity() {
-  const email = 'athena.core@keyid.ai';
-  const phone = '+15550199';
+  const config = await dbService.getConfig();
+  let publicKey = config.publicKey;
+  let privateKey = config.privateKey;
+
+  // Generate real Ed25519 keys if they are not already set
+  if (!publicKey || !privateKey) {
+    try {
+      const { generateKeyPairSync } = require('crypto');
+      const { publicKey: pubObj, privateKey: privObj } = generateKeyPairSync('ed25519');
+      publicKey = pubObj.export({ type: 'spki', format: 'der' }).slice(-32).toString('hex');
+      privateKey = privObj.export({ type: 'pkcs8', format: 'der' }).slice(-32).toString('hex');
+      logger.info('[IdentityService] Auto-generated real Ed25519 keypair for KeyID.');
+    } catch (err) {
+      logger.error('[IdentityService] Failed to generate Ed25519 keypair:', err);
+    }
+  }
+
+  // Derive unique and authentic email and phone number based on the real public key
+  const email = publicKey ? `athena.${publicKey.substring(0, 10)}@keyid.ai` : 'athena.core@keyid.ai';
+  const phoneSuffix = publicKey ? parseInt(publicKey.substring(10, 18), 16) % 10000000 : 5550199;
+  const phone = publicKey ? `+1555${String(phoneSuffix).padStart(7, '0')}` : '+15550199';
 
   await dbService.updateConfig({
     isProvisioned: true,
+    publicKey,
+    privateKey,
     email,
     phone,
   });
 
-  logger.info(`[IdentityService] Provisioned new identity and saved to DB: ${email} / ${phone}`);
+  logger.info(`[IdentityService] Provisioned new real identity and saved to DB: ${email} / ${phone}`);
   return {
     success: true,
     email,
     phone,
+    publicKey,
+    privateKey,
     status: 'active',
   };
 }
@@ -116,6 +157,7 @@ async function getPlatforms() {
 module.exports = {
   getIdentityStatus,
   updateApiKey,
+  updateConfig,
   provisionIdentity,
   getMessages,
   sendMessage,

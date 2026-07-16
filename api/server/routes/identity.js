@@ -26,15 +26,15 @@ router.get('/status', async (req, res) => {
 
 /**
  * POST /api/identity/config
- * Guardar/actualizar la API Key en la base de datos
+ * Guardar/actualizar la API Key y llaves en la base de datos
  */
 router.post('/config', async (req, res) => {
   try {
-    const { apiKey } = req.body;
-    if (apiKey === undefined) {
+    const { apiKey, publicKey, privateKey } = req.body;
+    if (apiKey === undefined && publicKey === undefined && privateKey === undefined) {
       return res.status(400).json({ error: 'Missing required field: apiKey' });
     }
-    const result = await identityService.updateApiKey(apiKey);
+    const result = await identityService.updateConfig({ apiKey, publicKey, privateKey });
     res.status(200).json(result);
   } catch (error) {
     logger.error('[identity/config] Error:', error);
