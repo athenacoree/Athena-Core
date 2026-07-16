@@ -5,6 +5,7 @@ const request = require('supertest');
 jest.mock('~/server/services/identityService', () => ({
   getIdentityStatus: jest.fn(),
   updateApiKey: jest.fn(),
+  updateConfig: jest.fn(),
   provisionIdentity: jest.fn(),
   getMessages: jest.fn(),
   sendMessage: jest.fn(),
@@ -61,27 +62,31 @@ describe('Identity Routes', () => {
   });
 
   describe('POST /config', () => {
-    it('should save the KeyID API key for admin', async () => {
-      const mockResult = { success: true, apiKey: 'new-key-123' };
-      identityService.updateApiKey.mockResolvedValue(mockResult);
+    it('should save the KeyID API key and keys for admin', async () => {
+      const mockResult = { success: true, apiKey: 'new-key-123', publicKey: 'pub-key-123', privateKey: 'priv-key-123' };
+      identityService.updateConfig.mockResolvedValue(mockResult);
 
       const response = await request(app)
         .post('/api/identity/config')
-        .send({ apiKey: 'new-key-123' });
+        .send({ apiKey: 'new-key-123', publicKey: 'pub-key-123', privateKey: 'priv-key-123' });
 
       expect(response.status).toBe(200);
       expect(response.body).toEqual(mockResult);
-      expect(identityService.updateApiKey).toHaveBeenCalledWith('new-key-123');
+      expect(identityService.updateConfig).toHaveBeenCalledWith({
+        apiKey: 'new-key-123',
+        publicKey: 'pub-key-123',
+        privateKey: 'priv-key-123',
+      });
     });
 
-    it('should return 400 when missing apiKey parameter', async () => {
+    it('should return 400 when missing all parameters', async () => {
       const response = await request(app)
         .post('/api/identity/config')
         .send({});
 
       expect(response.status).toBe(400);
       expect(response.body).toEqual({ error: 'Missing required field: apiKey' });
-      expect(identityService.updateApiKey).not.toHaveBeenCalled();
+      expect(identityService.updateConfig).not.toHaveBeenCalled();
     });
   });
 

@@ -22,4 +22,4 @@ mcpServers:
   keyid:
     url: "https://keyid.ai/mcp"
     type: "sse"
-    requiresOAuth: true
+    startup: false
