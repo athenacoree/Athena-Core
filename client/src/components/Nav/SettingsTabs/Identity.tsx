@@ -17,6 +17,9 @@ import {
   Check,
   Instagram,
   Key,
+  Chrome,
+  Lock,
+  Trash2,
 } from 'lucide-react';
 interface Message {
   id: string;
@@ -35,6 +38,10 @@ interface IdentityStatus {
   provisioned: boolean;
   email: string | null;
   phone: string | null;
+  googleClientId?: string;
+  googleClientSecret?: string;
+  googleCallbackUrl?: string;
+  googleConfigured?: boolean;
 }
 
 export default function Identity() {
@@ -48,6 +55,14 @@ export default function Identity() {
   const [publicKeyInput, setPublicKeyInput] = useState<string>('');
   const [privateKeyInput, setPrivateKeyInput] = useState<string>('');
   const [savingApiKey, setSavingApiKey] = useState<boolean>(false);
+
+  // Google Config states
+  const [googleClientIdInput, setGoogleClientIdInput] = useState<string>('');
+  const [googleClientSecretInput, setGoogleClientSecretInput] = useState<string>('');
+  const [googleCallbackUrlInput, setGoogleCallbackUrlInput] = useState<string>('');
+  const [savingGoogleConfig, setSavingGoogleConfig] = useState<boolean>(false);
+  const [deletingGoogleConfig, setDeletingGoogleConfig] = useState<boolean>(false);
+  const [deletingIdentity, setDeletingIdentity] = useState<boolean>(false);
 
   // Connection QR states
   const [selectedPlatform, setSelectedPlatform] = useState<string>('WhatsApp');
@@ -77,6 +92,9 @@ export default function Identity() {
       setStatus(statusRes.data);
       setPublicKeyInput(statusRes.data.publicKey || '');
       setPrivateKeyInput(statusRes.data.privateKey || '');
+      setGoogleClientIdInput(statusRes.data.googleClientId || '');
+      setGoogleClientSecretInput(statusRes.data.googleClientSecret || '');
+      setGoogleCallbackUrlInput(statusRes.data.googleCallbackUrl || '');
 
       if (statusRes.data.provisioned) {
         const msgsRes = await axios.get('/api/identity/messages');
@@ -97,6 +115,87 @@ export default function Identity() {
   useEffect(() => {
     fetchStatusAndData();
   }, []);
+
+  const handleSaveGoogleConfig = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!googleClientIdInput || !googleClientSecretInput) {
+      setErrorMsg('Por favor introduce el ID de Cliente y Secreto de Google.');
+      return;
+    }
+    setSavingGoogleConfig(true);
+    setErrorMsg(null);
+    setSuccessMsg(null);
+    try {
+      const res = await axios.post('/api/identity/google-config', {
+        clientId: googleClientIdInput,
+        clientSecret: googleClientSecretInput,
+        callbackUrl: googleCallbackUrlInput,
+      });
+      if (res.data.success) {
+        setSuccessMsg('Configuración de Google OAuth guardada exitosamente.');
+        // Refresh status
+        const statusRes = await axios.get('/api/identity/status');
+        setStatus(statusRes.data);
+      }
+    } catch (err: any) {
+      console.error('Error saving Google config:', err);
+      setErrorMsg('Error al guardar la configuración de Google.');
+    } finally {
+      setSavingGoogleConfig(false);
+    }
+  };
+
+  const handleDeleteGoogleConfig = async () => {
+    if (!window.confirm('¿Estás seguro de que deseas eliminar la configuración de Google OAuth?')) {
+      return;
+    }
+    setDeletingGoogleConfig(true);
+    setErrorMsg(null);
+    setSuccessMsg(null);
+    try {
+      const res = await axios.delete('/api/identity/google-config');
+      if (res.data.success) {
+        setSuccessMsg('Configuración de Google OAuth eliminada exitosamente.');
+        setGoogleClientIdInput('');
+        setGoogleClientSecretInput('');
+        setGoogleCallbackUrlInput('');
+        // Refresh status
+        const statusRes = await axios.get('/api/identity/status');
+        setStatus(statusRes.data);
+      }
+    } catch (err: any) {
+      console.error('Error deleting Google config:', err);
+      setErrorMsg('Error al eliminar la configuración de Google.');
+    } finally {
+      setDeletingGoogleConfig(false);
+    }
+  };
+
+  const handleDeleteIdentity = async () => {
+    if (
+      !window.confirm(
+        '¿Estás seguro de que deseas eliminar la identidad digital del agente? Esto borrará el correo, el teléfono y las llaves criptográficas de Athena Core de la base de datos.',
+      )
+    ) {
+      return;
+    }
+    setDeletingIdentity(true);
+    setErrorMsg(null);
+    setSuccessMsg(null);
+    try {
+      const res = await axios.delete('/api/identity/identity');
+      if (res.data.success) {
+        setSuccessMsg('Identidad digital eliminada exitosamente.');
+        // Refresh status & data
+        await fetchStatusAndData();
+      }
+    } catch (err: any) {
+      console.error('Error deleting identity:', err);
+      setErrorMsg('Error al eliminar la identidad digital.');
+    } finally {
+      setDeletingIdentity(false);
+    }
+  };
 
   const handleSaveApiKey = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -363,8 +462,133 @@ export default function Identity() {
                 </span>
               </div>
             )}
+            <button
+              onClick={handleDeleteIdentity}
+              disabled={deletingIdentity}
+              className="mt-2 hover:bg-red-600/10 flex items-center justify-center gap-2 rounded-lg border border-red-500/30 bg-red-500/5 px-4 py-2 font-medium text-red-600 dark:text-red-400 transition-colors disabled:opacity-50 md:col-span-2"
+            >
+              {deletingIdentity ? (
+                <RefreshCw className="h-4 w-4 animate-spin" />
+              ) : (
+                <>
+                  <Trash2 className="h-4 w-4" />
+                  Eliminar Identidad Digital de la IA
+                </>
+              )}
+            </button>
           </div>
         )}
+      </div>
+
+      {/* Google OAuth Section */}
+      <div className="flex flex-col gap-4 rounded-xl border border-border-light bg-surface-secondary p-5">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2.5">
+            <Chrome
+              className={`h-5 w-5 ${status?.googleConfigured ? 'text-green-500' : 'text-text-tertiary'}`}
+            />
+            <h3 className="text-base font-semibold">Autenticación de Google (OAuth)</h3>
+          </div>
+          <span
+            className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium ${
+              status?.googleConfigured
+                ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400'
+                : 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400'
+            }`}
+          >
+            {status?.googleConfigured ? <Check className="h-3 w-3" /> : null}
+            {status?.googleConfigured ? 'Activo' : 'No Configurado'}
+          </span>
+        </div>
+
+        <p className="text-xs leading-relaxed text-text-secondary">
+          Configura los parámetros de Google OAuth para permitir a los usuarios iniciar sesión utilizando sus cuentas de Google de manera segura. Estos valores se guardan en la base de datos y se cargan dinámicamente sin necesidad de reiniciar el servidor ni configurar variables de entorno en el backend.
+        </p>
+
+        <form
+          onSubmit={handleSaveGoogleConfig}
+          className="flex flex-col gap-4 rounded-lg border border-border-light bg-surface-tertiary p-4"
+        >
+          <div className="flex items-center gap-2">
+            <Lock className="h-4 w-4 text-brand-purple" />
+            <span className="text-xs font-semibold text-text-primary">
+              Credenciales de la Aplicación de Google
+            </span>
+          </div>
+
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+            <div className="flex flex-col gap-1.5 md:col-span-2">
+              <label className="text-xs font-medium text-text-secondary">ID de Cliente (Google Client ID)</label>
+              <input
+                type="text"
+                value={googleClientIdInput}
+                onChange={(e) => setGoogleClientIdInput(e.target.value)}
+                placeholder="Ej: 123456789-abcdef.apps.googleusercontent.com"
+                className="rounded-lg border border-border-light bg-surface-secondary p-2 font-mono text-xs focus:outline-none focus:ring-1 focus:ring-brand-purple"
+                required
+              />
+            </div>
+            <div className="flex flex-col gap-1.5">
+              <label className="text-xs font-medium text-text-secondary">Secreto del Cliente (Google Client Secret)</label>
+              <input
+                type="password"
+                value={googleClientSecretInput}
+                onChange={(e) => setGoogleClientSecretInput(e.target.value)}
+                placeholder="Introduce el Client Secret"
+                className="rounded-lg border border-border-light bg-surface-secondary p-2 font-mono text-xs focus:outline-none focus:ring-1 focus:ring-brand-purple"
+                required
+              />
+            </div>
+            <div className="flex flex-col gap-1.5">
+              <label className="text-xs font-medium text-text-secondary">URL de Retorno (Google Callback URL - Opcional)</label>
+              <input
+                type="text"
+                value={googleCallbackUrlInput}
+                onChange={(e) => setGoogleCallbackUrlInput(e.target.value)}
+                placeholder="Por defecto: /oauth/google/callback"
+                className="rounded-lg border border-border-light bg-surface-secondary p-2 font-mono text-xs focus:outline-none focus:ring-1 focus:ring-brand-purple"
+              />
+            </div>
+          </div>
+
+          <div className="flex justify-between items-center mt-2 flex-col md:flex-row gap-3">
+            <div className="flex flex-col gap-1 max-w-xl">
+              <p className="text-[11px] text-text-tertiary leading-normal">
+                Asegúrate de agregar la URL de redirección en la consola de Google Developer: <code className="bg-surface-secondary px-1 py-0.5 rounded font-mono break-all">{`${window.location.origin}/oauth/google/callback`}</code> y <code className="bg-surface-secondary px-1 py-0.5 rounded font-mono break-all">{`${window.location.origin}/api/admin/oauth/google/callback`}</code>.
+              </p>
+            </div>
+            <div className="flex gap-2 self-end md:self-auto">
+              {status?.googleClientId && (
+                <button
+                  type="button"
+                  onClick={handleDeleteGoogleConfig}
+                  disabled={deletingGoogleConfig}
+                  className="hover:bg-red-600/10 flex items-center justify-center gap-1.5 rounded-lg border border-red-500/30 bg-red-500/5 px-4 py-2 text-xs font-semibold text-red-600 dark:text-red-400 transition-colors disabled:opacity-50 whitespace-nowrap"
+                >
+                  {deletingGoogleConfig ? (
+                    <RefreshCw className="h-3.5 w-3.5 animate-spin" />
+                  ) : (
+                    <>
+                      <Trash2 className="h-3.5 w-3.5" />
+                      Borrar Configuración
+                    </>
+                  )}
+                </button>
+              )}
+              <button
+                type="submit"
+                disabled={savingGoogleConfig}
+                className="hover:bg-brand-purple/90 flex items-center justify-center gap-1.5 rounded-lg bg-brand-purple px-4 py-2 text-xs font-semibold text-white transition-colors disabled:opacity-50 whitespace-nowrap"
+              >
+                {savingGoogleConfig ? (
+                  <RefreshCw className="h-3.5 w-3.5 animate-spin" />
+                ) : (
+                  'Guardar Configuración de Google'
+                )}
+              </button>
+            </div>
+          </div>
+        </form>
       </div>
 
       {status?.provisioned && (

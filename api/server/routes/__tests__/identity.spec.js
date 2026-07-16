@@ -10,6 +10,9 @@ jest.mock('~/server/services/identityService', () => ({
   getMessages: jest.fn(),
   sendMessage: jest.fn(),
   getPlatforms: jest.fn(),
+  updateGoogleConfig: jest.fn(),
+  deleteGoogleConfig: jest.fn(),
+  deleteIdentity: jest.fn(),
 }));
 
 jest.mock('~/server/middleware/requireJwtAuth', () => (req, res, next) => next());
@@ -151,6 +154,60 @@ describe('Identity Routes', () => {
       expect(response.status).toBe(200);
       expect(response.body).toEqual(mockPlatforms);
       expect(identityService.getPlatforms).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('POST /google-config', () => {
+    it('should save Google config for admin', async () => {
+      const mockResult = { success: true };
+      identityService.updateGoogleConfig.mockResolvedValue(mockResult);
+
+      const response = await request(app)
+        .post('/api/identity/google-config')
+        .send({ clientId: 'id-123', clientSecret: 'sec-123', callbackUrl: '/cb' });
+
+      expect(response.status).toBe(200);
+      expect(response.body).toEqual(mockResult);
+      expect(identityService.updateGoogleConfig).toHaveBeenCalledWith({
+        clientId: 'id-123',
+        clientSecret: 'sec-123',
+        callbackUrl: '/cb',
+      });
+    });
+
+    it('should return 400 when missing required fields', async () => {
+      const response = await request(app)
+        .post('/api/identity/google-config')
+        .send({ clientId: 'id-123' }); // missing clientSecret
+
+      expect(response.status).toBe(400);
+      expect(response.body).toEqual({ error: 'Missing required fields: clientId, clientSecret' });
+    });
+  });
+
+  describe('DELETE /google-config', () => {
+    it('should delete Google config for admin', async () => {
+      const mockResult = { success: true };
+      identityService.deleteGoogleConfig.mockResolvedValue(mockResult);
+
+      const response = await request(app).delete('/api/identity/google-config');
+
+      expect(response.status).toBe(200);
+      expect(response.body).toEqual(mockResult);
+      expect(identityService.deleteGoogleConfig).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('DELETE /identity', () => {
+    it('should delete identity for admin', async () => {
+      const mockResult = { success: true };
+      identityService.deleteIdentity.mockResolvedValue(mockResult);
+
+      const response = await request(app).delete('/api/identity/identity');
+
+      expect(response.status).toBe(200);
+      expect(response.body).toEqual(mockResult);
+      expect(identityService.deleteIdentity).toHaveBeenCalledTimes(1);
     });
   });
 });

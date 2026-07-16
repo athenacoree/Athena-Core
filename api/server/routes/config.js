@@ -207,6 +207,18 @@ function buildCloudFrontStartupConfig() {
 router.get('/', async function (req, res) {
   try {
     const preLoginPayload = buildPreLoginPayload();
+
+    // Dynamically enable Google Login if configured in database
+    try {
+      const dbService = require('~/server/services/keyIdDbService');
+      const dbConfig = await dbService.getConfig();
+      if (dbConfig && dbConfig.googleClientId && dbConfig.googleClientSecret) {
+        preLoginPayload.googleLoginEnabled = true;
+      }
+    } catch (dbErr) {
+      logger.error('Error fetching dynamic Google configuration:', dbErr);
+    }
+
     const publicSharePayload = buildPublicSharePayload();
     const rum = getRumConfig();
 

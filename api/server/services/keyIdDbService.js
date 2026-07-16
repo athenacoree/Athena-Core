@@ -8,6 +8,9 @@ const KeyIDConfigSchema = new mongoose.Schema({
   isProvisioned: { type: Boolean, default: false },
   email: { type: String, default: '' },
   phone: { type: String, default: '' },
+  googleClientId: { type: String, default: '' },
+  googleClientSecret: { type: String, default: '' },
+  googleCallbackUrl: { type: String, default: '' },
   updatedAt: { type: Date, default: Date.now },
 });
 
@@ -39,6 +42,9 @@ async function getConfig() {
         isProvisioned: false,
         email: '',
         phone: '',
+        googleClientId: '',
+        googleClientSecret: '',
+        googleCallbackUrl: '',
       });
     }
     return config;
@@ -51,6 +57,9 @@ async function getConfig() {
       isProvisioned: false,
       email: '',
       phone: '',
+      googleClientId: '',
+      googleClientSecret: '',
+      googleCallbackUrl: '',
     };
   }
 }
