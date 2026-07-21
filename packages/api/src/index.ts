@@ -49,6 +49,8 @@ export * from './actions';
 export * from './prompts';
 /* Projects */
 export * from './projects';
+/* Enterprise B2B */
+export * from './enterprise';
 /* Skills */
 export * from './skills';
 export * from './favorites';

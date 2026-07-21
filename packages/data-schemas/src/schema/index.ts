@@ -32,3 +32,7 @@ export { default as groupSchema } from './group';
 export { default as systemGrantSchema } from './systemGrant';
 export { default as auditLogSchema } from './auditLog';
 export { default as configSchema } from './config';
+export { default as empresaSchema } from './empresa';
+export { default as ramaSchema } from './rama';
+export { default as ideaSchema } from './idea';
+export { default as accionSchema } from './accion';
