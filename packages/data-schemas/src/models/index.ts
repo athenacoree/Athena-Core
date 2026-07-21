@@ -32,6 +32,7 @@ import { createAgentModel } from './agent';
 import { createSkillModel } from './skill';
 import { createGroupModel } from './group';
 import { createUserModel } from './user';
+import { createWhatsAppSessionModel } from './whatsappSession';
 import { createRoleModel } from './role';
 import { createFileModel } from './file';
 import { createKeyModel } from './key';
@@ -45,6 +46,7 @@ import { createAccionModel } from './accion';
  */
 export function createModels(mongoose: typeof import('mongoose')): {
   User: ReturnType<typeof createUserModel>;
+  WhatsAppSession: ReturnType<typeof createWhatsAppSessionModel>;
   Token: ReturnType<typeof createTokenModel>;
   Session: ReturnType<typeof createSessionModel>;
   Balance: ReturnType<typeof createBalanceModel>;
@@ -88,6 +90,7 @@ export function createModels(mongoose: typeof import('mongoose')): {
 } {
   return {
     User: createUserModel(mongoose),
+    WhatsAppSession: createWhatsAppSessionModel(mongoose),
     Token: createTokenModel(mongoose),
     Session: createSessionModel(mongoose),
     Balance: createBalanceModel(mongoose),

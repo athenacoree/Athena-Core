@@ -23,3 +23,7 @@ mcpServers:
     url: "https://keyid.ai/mcp"
     type: "sse"
     startup: false
+  whatsapp:
+    url: "http://localhost:${PORT:-3080}/api/mcp/whatsapp"
+    type: "streamable-http"
+    startup: false

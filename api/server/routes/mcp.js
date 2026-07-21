@@ -978,4 +978,220 @@ router.delete(
   deleteMCPServerController,
 );
 
+const mongoose = require('mongoose');
+const { requireCapability } = require('~/server/middleware/roles/capabilities');
+const { SystemCapabilities } = require('@librechat/data-schemas');
+const { WhatsAppService } = require('~/server/services/WhatsAppService');
+
+const requireAdminAccess = requireCapability(SystemCapabilities.ACCESS_ADMIN);
+
+/**
+ * MCP streamable-http router for WhatsApp MCP
+ * Handles protocol-level tool discovery and tool calling requests
+ */
+router.post('/whatsapp', async (req, res) => {
+  // Security guard: Ensure request is either authenticated or comes internally from localhost (loopback interface)
+  const isLocal = req.ip === '127.0.0.1' || req.ip === '::1' || req.ip === '::ffff:127.0.0.1';
+  if (!isLocal && !req.isAuthenticated?.()) {
+    logger.warn(`[WhatsAppMCP] Blocked unauthorized external access to MCP endpoint from IP: ${req.ip}`);
+    return res.status(403).json({ error: 'Access denied: Internal or authenticated requests only.' });
+  }
+
+  const { id, method, params } = req.body;
+
+  try {
+    if (method === 'initialize') {
+      return res.json({
+        jsonrpc: '2.0',
+        id,
+        result: {
+          protocolVersion: '2024-11-05',
+          capabilities: {
+            tools: {}
+          },
+          serverInfo: {
+            name: 'whatsapp-mcp-stream',
+            version: '1.0.0'
+          }
+        }
+      });
+    }
+
+    if (method === 'tools/list') {
+      return res.json({
+        jsonrpc: '2.0',
+        id,
+        result: {
+          tools: [
+            {
+              name: 'get_qr_code',
+              description: 'Obtiene el código QR actual de WhatsApp en formato base64 para vincular la cuenta.',
+              inputSchema: {
+                type: 'object',
+                properties: {}
+              }
+            },
+            {
+              name: 'check_auth_status',
+              description: 'Comprueba el estado de autenticación de WhatsApp (conectado, desconectado, QR, etc.)',
+              inputSchema: {
+                type: 'object',
+                properties: {}
+              }
+            },
+            {
+              name: 'logout',
+              description: 'Cierra la sesión actual de WhatsApp y desconecta la cuenta.',
+              inputSchema: {
+                type: 'object',
+                properties: {}
+              }
+            },
+            {
+              name: 'list_interactions',
+              description: 'Lista los usuarios que han interactuado con el bot de WhatsApp.',
+              inputSchema: {
+                type: 'object',
+                properties: {}
+              }
+            }
+          ]
+        }
+      });
+    }
+
+    if (method === 'tools/call') {
+      const toolName = params?.name;
+      const toolArgs = params?.arguments || {};
+
+      let resultText = '';
+
+      if (toolName === 'get_qr_code') {
+        resultText = WhatsAppService.qrCode
+          ? `QR Code (base64): ${WhatsAppService.qrCode}`
+          : `No QR Code available. State: ${WhatsAppService.state}`;
+      } else if (toolName === 'check_auth_status') {
+        resultText = JSON.stringify({
+          state: WhatsAppService.state,
+          linkedNumber: WhatsAppService.linkedNumber
+        });
+      } else if (toolName === 'logout') {
+        await WhatsAppService.reset();
+        resultText = 'WhatsApp session reset completed.';
+      } else if (toolName === 'list_interactions') {
+        const WhatsAppSession = db.WhatsAppSession || mongoose.models.WhatsAppSession;
+        const session = await WhatsAppSession.findOne({ adminUserId: WhatsAppService.adminUserId });
+        resultText = JSON.stringify(session?.interactions || []);
+      } else {
+        resultText = `Unknown tool: ${toolName}`;
+      }
+
+      return res.json({
+        jsonrpc: '2.0',
+        id,
+        result: {
+          content: [
+            {
+              type: 'text',
+              text: resultText
+            }
+          ]
+        }
+      });
+    }
+
+    return res.status(400).json({
+      jsonrpc: '2.0',
+      id,
+      error: {
+        code: -32601,
+        message: 'Method not found'
+      }
+    });
+  } catch (err) {
+    logger.error('[WhatsAppMCP] Error handling JSON-RPC request:', err);
+    return res.status(500).json({
+      jsonrpc: '2.0',
+      id,
+      error: {
+        code: -32603,
+        message: 'Internal error'
+      }
+    });
+  }
+});
+
+/**
+ * Express Admin endpoints for managing the WhatsApp session
+ */
+router.post('/whatsapp/initialize', requireJwtAuth, requireAdminAccess, async (req, res) => {
+  const { agentId } = req.body;
+  const adminUserId = req.user.id;
+
+  try {
+    WhatsAppService.adminUserId = adminUserId;
+    WhatsAppService.agentId = agentId;
+
+    // Create session record in DB if it doesn't exist to persist configured agent context
+    const WhatsAppSession = mongoose.models.WhatsAppSession;
+    let session = await WhatsAppSession.findOne({ adminUserId });
+    if (!session) {
+      await WhatsAppSession.create({
+        adminUserId,
+        agentId,
+        interactions: []
+      });
+    } else {
+      await WhatsAppSession.updateOne({ adminUserId }, { $set: { agentId } });
+    }
+
+    // Connect asynchronously without blocking response
+    WhatsAppService.connect().catch((err) => {
+      logger.error('[WhatsAppService] Connection error:', err);
+    });
+
+    return res.json({
+      success: true,
+      message: 'WhatsApp initialization started. QR code will be generated shortly.'
+    });
+  } catch (err) {
+    logger.error('[WhatsAppAdmin] Error initializing session:', err);
+    return res.status(500).json({ error: 'Failed to initialize session' });
+  }
+});
+
+router.get('/whatsapp/admin-status', requireJwtAuth, requireAdminAccess, async (req, res) => {
+  const adminUserId = req.user.id;
+
+  try {
+    const WhatsAppSession = mongoose.models.WhatsAppSession;
+    const session = await WhatsAppSession.findOne({ adminUserId });
+
+    return res.json({
+      success: true,
+      state: WhatsAppService.state,
+      qrCode: WhatsAppService.qrCode,
+      linkedNumber: WhatsAppService.linkedNumber,
+      agentId: session?.agentId || WhatsAppService.agentId,
+      interactions: session?.interactions || []
+    });
+  } catch (err) {
+    logger.error('[WhatsAppAdmin] Error getting status:', err);
+    return res.status(500).json({ error: 'Failed to retrieve session status' });
+  }
+});
+
+router.post('/whatsapp/admin-reset', requireJwtAuth, requireAdminAccess, async (req, res) => {
+  try {
+    await WhatsAppService.reset();
+    return res.json({
+      success: true,
+      message: 'WhatsApp session reset completely.'
+    });
+  } catch (err) {
+    logger.error('[WhatsAppAdmin] Error during reset:', err);
+    return res.status(500).json({ error: 'Failed to reset WhatsApp session' });
+  }
+});
+
 module.exports = router;

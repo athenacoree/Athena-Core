@@ -401,6 +401,12 @@ const startServer = async () => {
       await runAsSystem(async () => {
         await initializeMCPs();
         await initializeOAuthReconnectManager();
+        try {
+          const { WhatsAppService } = require('./services/WhatsAppService');
+          await WhatsAppService.start();
+        } catch (waErr) {
+          logger.error('[Startup] Failed to start WhatsAppService:', waErr);
+        }
       });
       await checkMigrations();
 
