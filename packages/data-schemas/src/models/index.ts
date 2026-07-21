@@ -35,6 +35,10 @@ import { createUserModel } from './user';
 import { createRoleModel } from './role';
 import { createFileModel } from './file';
 import { createKeyModel } from './key';
+import { createEmpresaModel } from './empresa';
+import { createRamaModel } from './rama';
+import { createIdeaModel } from './idea';
+import { createAccionModel } from './accion';
 
 /**
  * Creates all database models for all collections
@@ -77,6 +81,10 @@ export function createModels(mongoose: typeof import('mongoose')): {
   AuditLog: ReturnType<typeof createAuditLogModel>;
   Group: ReturnType<typeof createGroupModel>;
   Config: ReturnType<typeof createConfigModel>;
+  Empresa: ReturnType<typeof createEmpresaModel>;
+  Rama: ReturnType<typeof createRamaModel>;
+  Idea: ReturnType<typeof createIdeaModel>;
+  Accion: ReturnType<typeof createAccionModel>;
 } {
   return {
     User: createUserModel(mongoose),
@@ -116,5 +124,9 @@ export function createModels(mongoose: typeof import('mongoose')): {
     AuditLog: createAuditLogModel(mongoose),
     Group: createGroupModel(mongoose),
     Config: createConfigModel(mongoose),
+    Empresa: createEmpresaModel(mongoose),
+    Rama: createRamaModel(mongoose),
+    Idea: createIdeaModel(mongoose),
+    Accion: createAccionModel(mongoose),
   };
 }
